@@ -1,0 +1,25 @@
+@startuml Get Single Reservation (GET :id)
+
+header Massage Reservation Sequence Diagram : GET :id
+footer CEDT Chulalongkorn University
+title "Get Reservation by ID (GET One)"
+
+participant "Client" as client
+participant "<<JavaScript>>\n:server" as server
+participant "<<router>>\n:reservations" as router
+participant "<<middleware>>\n:protect" as protect
+participant "<<controllers>>\n:reservations" as controller
+participant "<<model>>\n:Reservation" as model
+database "<<MongoDB>>\n:reservations" as db
+
+client->server ++: GET /reservations/:id
+server->router ++: route('/:id')
+router->protect ++: authenticate()
+protect-->router --: Token Valid
+router->controller ++: getReservation()
+controller->model ++: findById(id)
+model->db ++: query
+db --> model --: reservation
+model --> controller --: result
+controller --> client --: 200 OK (Reservation)
+@enduml

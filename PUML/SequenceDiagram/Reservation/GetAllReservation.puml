@@ -1,0 +1,25 @@
+@startuml Get All Reservations (GET ALL)
+
+header Massage Reservation Sequence Diagram : GET ALL
+footer CEDT Chulalongkorn University | Page %page% of %lastpage%
+title "Get All Reservations (GET ALL)"
+
+participant "Client" as client
+participant "<<JavaScript>>\n:server" as server
+participant "<<router>>\n:reservations" as router
+participant "<<middleware>>\n:protect" as protect
+participant "<<controllers>>\n:reservations" as controller
+participant "<<model>>\n:Reservation" as model
+database "<<MongoDB>>\n:reservations" as db
+
+client->server ++: GET /api/v1/reservations
+server->router ++: route('/')
+router->protect ++: authenticate()
+protect-->router --: Token Valid
+router->controller ++: getReservations()
+controller->model ++: find()
+model->db ++: query
+db --> model --: data
+model --> controller --: reservations
+controller --> client --: 200 OK
+@enduml

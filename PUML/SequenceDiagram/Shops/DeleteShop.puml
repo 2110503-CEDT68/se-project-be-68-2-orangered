@@ -1,0 +1,27 @@
+@startuml Delete Shop (DELETE :id)
+
+header Massage Reservation Sequence Diagram : DELETE SHOP
+footer CEDT Chulalongkorn University
+title "Delete Shop"
+
+participant "Client" as client
+participant "<<router>>\n:shops" as router
+participant "<<middleware>>\n:protect" as protect
+participant "<<middleware>>\n:authorize" as authorize
+participant "<<controllers>>\n:shops" as controller
+participant "<<model>>\n:Shop" as model
+
+client->router ++: DELETE /shops/:id
+router->protect ++: authenticate()
+protect-->router --: User Validated
+router->authorize ++: checkRole('admin')
+authorize-->router --: Authorized
+router->controller ++: deleteReservation()
+controller->model ++: findByIdAndDelete()
+
+model->db ++: save()
+db --> model --: success
+
+model --> controller --: success
+controller --> client --: 200 OK (Deleted)
+@enduml

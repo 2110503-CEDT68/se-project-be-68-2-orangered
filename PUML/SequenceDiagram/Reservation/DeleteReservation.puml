@@ -1,0 +1,28 @@
+@startuml Delete Reservation (DELETE :id)
+
+header Massage Reservation Sequence Diagram : DELETE :id
+footer CEDT Chulalongkorn University
+title "Delete Reservation"
+
+participant "Client" as client
+participant "<<router>>\n:reservations" as router
+participant "<<middleware>>\n:protect" as protect
+participant "<<middleware>>\n:authorize" as authorize
+participant "<<controllers>>\n:reservations" as controller
+participant "<<model>>\n:Reservation" as model
+database "<<MongoDB>>\n:reservations" as db
+
+client->router ++: DELETE /reservations/:id
+router->protect ++: authenticate()
+protect-->router --: User Validated
+router->authorize ++: checkRole('admin', 'user')
+authorize-->router --: Authorized
+router->controller ++: deleteReservation()
+controller->model ++: findByIdAndDelete()
+
+model->db ++: save()
+db --> model --: success
+
+model --> controller --: success
+controller --> client --: 200 OK (Deleted)
+@enduml

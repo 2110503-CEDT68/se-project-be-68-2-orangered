@@ -1,0 +1,26 @@
+@startuml Create Shop (POST)
+
+header Massage Reservation Sequence Diagram : POST SHOP
+footer CEDT Chulalongkorn University
+title "Create Shop"
+
+participant "Client" as client
+participant "<<router>>\n:shops" as router
+participant "<<middleware>>\n:protect" as protect
+participant "<<middleware>>\n:authorize" as authorize
+participant "<<controllers>>\n:shops" as controller
+participant "<<model>>\n:Shop" as model
+database "<<MongoDB>>\n:shops" as db
+
+client->router ++: POST /shops
+router->protect ++: authenticate()
+protect-->router --: User Validated
+router->authorize ++: checkRole('admin')
+authorize-->router --: Authorized
+router->controller ++: createShop()
+controller->model ++: create(data)
+model->db ++: save()
+db --> model --: success
+model --> controller --: result
+controller --> client --: 201 Created
+@enduml
