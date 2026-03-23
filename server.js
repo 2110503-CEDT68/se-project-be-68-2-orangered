@@ -41,7 +41,7 @@ app.use(cookieParser());
 // Enable cors with credentials so frontend can send cookies
 app.use(
     cors({
-        origin: 'http://localhost:5000',
+        origin: 'http://localhost:3000',
         credentials: true,
     })
 );
