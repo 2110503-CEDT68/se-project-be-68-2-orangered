@@ -47,8 +47,8 @@ app.use(
 );
 
 // Sanitize data
-app.use(expressMongoSanitize());
-app.use(xss());
+//app.use(expressMongoSanitize());
+//app.use(xss());
 
 // Set security helmet
 app.use(helmet());

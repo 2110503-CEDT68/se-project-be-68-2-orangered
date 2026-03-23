@@ -108,6 +108,8 @@ exports.getShop = async (req, res, next) => {
 };
 
 exports.createShop = async (req, res, next) => {
+
+    console.log("Before Save:", req.body.picture);
     const shop = await Shop.create(req.body);
     res.status(201).json({
         success:true,
@@ -116,6 +118,8 @@ exports.createShop = async (req, res, next) => {
 };
 
 exports.updateShop = async (req, res, next) => {
+
+
     try{
         const shops = await Shop.findByIdAndUpdate(
             req.params.id,
