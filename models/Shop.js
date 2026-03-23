@@ -53,11 +53,11 @@ const ShopSchema = new mongoose.Schema(
     },
     picture: {
       type: String,
-      required: [true, "Please add a picture url"],
+      // required: [true, "Please add a picture url"],
     },
     shopDescription: {
       type: String,
-      required: [true, "Please add a shop description"],
+      // required: [true, "Please add a shop description"],
     },
     massageType: [
       {
@@ -67,7 +67,7 @@ const ShopSchema = new mongoose.Schema(
         },
         description: {
           type: String,
-          required: [true, "Please add a description for the massage"],
+          // required: [true, "Please add a description for the massage"],
         },
         price: {
           type: Number,
