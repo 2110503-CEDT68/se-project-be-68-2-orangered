@@ -147,7 +147,7 @@ exports.updateShop = async (req, res, next) => {
 };
 
 exports.deleteShop = async (req, res, next) => {
-        try{
+    try{
         const shops = await Shop.findById(req.params.id,);
 
         if(!shops){
