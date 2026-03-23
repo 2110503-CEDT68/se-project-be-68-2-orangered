@@ -50,11 +50,34 @@ const ShopSchema = new mongoose.Schema(
           "Please use valid time format HH:mm from 00:00 - 23:59",
         ],
       },
-      
-    },picture: {
-        type: String,
-         required: [true, "Please add a picture url"],
-      }
+    },
+    picture: {
+      type: String,
+      required: [true, "Please add a picture url"],
+    },
+    shopDescription: {
+      type: String,
+      required: [true, "Please add a shop description"],
+    },
+    massageType: [
+      {
+        name: {
+          type: String,
+          required: [true, "Please add a massage name"],
+        },
+        description: {
+          type: String,
+          required: [true, "Please add a description for the massage"],
+        },
+        price: {
+          type: Number,
+          required: [true, "Please add a price"],
+        },
+        picture: {
+          type: String,
+        },
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
