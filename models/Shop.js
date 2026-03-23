@@ -50,7 +50,11 @@ const ShopSchema = new mongoose.Schema(
           "Please use valid time format HH:mm from 00:00 - 23:59",
         ],
       },
-    },
+      
+    },picture: {
+        type: String,
+         required: [true, "Please add a picture url"],
+      }
   },
   {
     toJSON: { virtuals: true },
