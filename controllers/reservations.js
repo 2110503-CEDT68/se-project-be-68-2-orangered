@@ -52,7 +52,7 @@ exports.getReservation = async (req, res, next) => {
             select: 'name description tel'
         }).populate({
             path: 'user',
-            select: 'name email'
+            select: 'name email role massageType'
         });
 
         if(!reservation){
