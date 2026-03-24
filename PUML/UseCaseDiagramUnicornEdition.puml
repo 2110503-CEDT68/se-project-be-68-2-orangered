@@ -1,0 +1,88 @@
+@startuml Unicorn Edition - Massage Reservation
+!include <tupadr3/common>
+!include <tupadr3/font-awesome-5/horse>
+!include <tupadr3/font-awesome-5/crown>
+
+header CEDT Chulalongkorn University
+title "🦄 Unicorn Edition: Massage Reservation System"
+
+left to right direction
+
+' ===== Unicorn Theme =====
+skinparam backgroundColor #FFF9FC
+skinparam shadowing false
+skinparam roundcorner 20
+skinparam linetype ortho
+skinparam nodesep 110
+skinparam ranksep 130
+
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 14
+
+skinparam rectangle {
+    BackgroundColor #FFE4F2
+    BorderColor #FF66B2
+    FontColor #993366
+}
+
+skinparam usecase {
+    BackgroundColor #E6D6FF
+    BorderColor #B57EDC
+    FontColor #4B0082
+}
+
+skinparam package {
+    BackgroundColor #FDF1FF
+    BorderColor #D8BFD8
+    FontSize 16
+}
+
+' ===== Actors =====
+rectangle "<$horse>\n🌈 Guest\n(Public)" as guest
+rectangle "<$horse>\n🌈 User\n(Customer)" as user
+rectangle "<$crown>\n👑 Admin" as admin
+
+' ใช้เส้นธรรมดาแทน inheritance
+user --> guest : role
+admin --> user : role
+
+' ===== System =====
+package "✨ Massage Reservation System ✨" {
+
+    package "💖 Authentication" {
+        usecase "Register" as UC_Register
+        usecase "Login" as UC_Login
+        usecase "View Profile" as UC_Profile
+        usecase "Logout" as UC_Logout
+    }
+
+    package "🏩 Shop Management" {
+        usecase "View Shops" as UC_ViewShops
+        usecase "Manage Shops" as UC_ManageShops
+    }
+
+    package "📅 Reservation Management" {
+        usecase "Create Reservation" as UC_CreateRes
+        usecase "View Reservations" as UC_ViewRes
+        usecase "Manage Reservation" as UC_ManageRes
+    }
+}
+
+' ===== Relationships =====
+guest --> UC_Register
+guest --> UC_Login
+guest --> UC_ViewShops
+
+user --> UC_Profile
+user --> UC_Logout
+user --> UC_ViewRes
+user --> UC_CreateRes
+user --> UC_ManageRes
+
+admin --> UC_ManageShops
+admin --> UC_ManageRes
+
+UC_ManageRes ..> UC_ViewRes : <<include>>
+UC_ManageShops ..> UC_ViewShops : <<include>>
+
+@enduml

@@ -1,0 +1,114 @@
+@startuml Massage Reservation Authentication
+
+header CEDT Chulalongkorn University
+title "Massage Reservation Authentication"
+
+top to bottom direction
+
+skinparam defaultFontName "Helvetica"
+skinparam defaultFontSize 14
+
+skinparam titleFontSize 24
+skinparam headerFontSize 14
+skinparam titleFontColor #333333
+
+
+skinparam BackgroundColor #ffffff
+skinparam shadowing false
+skinparam nodesep 100
+skinparam ranksep 130
+skinparam ArrowThickness 2
+skinparam ArrowSize 14
+skinparam linetype polyline
+
+skinparam class {
+    BackgroundColor<<Application>> #FFF2CC
+    BackgroundColor<<Resource>> #E6E6E6
+    BackgroundColor<<Representation>> #BDD7EE
+    BorderColor black
+    BorderThickness 1.5
+}
+
+skinparam class {
+    FontSize 14
+    AttributeFontSize 13
+    StereotypeFontSize 12
+}
+
+
+package "Massage Reservation Authentication" {
+
+    class MassageReservationService <<Application>>
+
+    class Auth <<Resource>> {
+        <<Path>> /auth
+        --
+        <<POST>> + register(): User {public}
+        <<POST>> + login(): Token {public}
+        <<GET>> + getMe(): User {user, admin}
+        <<POST>> + logout(): void {user, admin}
+    }
+
+    class Shops <<Resource>> {
+        <<Path>> /shops
+        --
+        <<GET>> + getShops(): Shop[] {public}
+        <<POST>> + createShop(): Shop {admin}
+    }
+
+    class Reservations <<Resource>> {
+        <<Path>> /reservations
+        --
+        <<GET>> + getReservations(): Reservation[] {user, admin}
+        <<POST>> + addReservation(): Reservation {user, admin}
+    }
+
+    class Shop <<Resource>> #C6EFCE {
+        <<Path>> /shops/{id}
+        --
+        <<GET>> + getShop(): Shop {public}
+        <<PUT>> + updateShop(): Shop {admin}
+        <<DELETE>> + deleteShop(): void {admin}
+    }
+
+    class Reservation <<Resource>> #C6EFCE {
+        <<Path>> /reservations/{id}
+        --
+        <<GET>> + getReservation(): Reservation {owner, admin}
+        <<PUT>> + updateReservation(): Reservation {owner, admin}
+        <<DELETE>> + deleteReservation(): void {owner, admin}
+    }
+
+    class User <<Representation>> {
+        - name
+        - email
+        - role
+        - tel
+    }
+
+    class ShopData <<Representation>> {
+        - name
+        - address
+        - tel
+        - openClose
+    }
+
+    class ReservationData <<Representation>> {
+        - appDate
+        - user (ref)
+        - shop (ref)
+    }
+}
+
+MassageReservationService ..> Auth : <<Path>> /auth
+MassageReservationService ..> Shops : <<Path>> /shops
+MassageReservationService ..> Reservations : <<Path>> /reservations
+
+Shops ..> Shop : <<Path>> /{id}
+Reservations ..> Reservation : <<Path>> /{id}
+
+Auth --> User : <<use>>
+Shop --> ShopData : <<use>>
+Reservation --> ReservationData : <<use>>
+
+@enduml

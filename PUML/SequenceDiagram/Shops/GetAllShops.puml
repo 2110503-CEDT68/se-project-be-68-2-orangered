@@ -1,0 +1,22 @@
+@startuml Get All Shops (GET)
+
+header Massage Reservation Sequence Diagram : GET ALL SHOPS
+footer CEDT Chulalongkorn University
+title "Get All Shops"
+
+participant "Client" as client
+participant "<<JavaScript>>\n:server" as server
+participant "<<router>>\n:shops" as router
+participant "<<controllers>>\n:shops" as controller
+participant "<<model>>\n:Shop" as model
+database "<<MongoDB>>\n:shops" as db
+
+client->server ++: GET /shops
+server->router ++: route('/')
+router->controller ++: getShops()
+controller->model ++: find()
+model->db ++: query
+db --> model --: data
+model --> controller --: shops
+controller --> client --: 200 OK (Shops)
+@enduml

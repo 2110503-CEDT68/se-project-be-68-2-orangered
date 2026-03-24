@@ -1,0 +1,28 @@
+@startuml Update Reservation (PUT :id)
+
+header Massage Reservation Sequence Diagram : PUT :id
+footer CEDT Chulalongkorn University
+title "Update Reservation"
+
+participant "Client" as client
+participant "<<router>>\n:reservations" as router
+participant "<<middleware>>\n:protect" as protect
+participant "<<middleware>>\n:authorize" as authorize
+participant "<<controllers>>\n:reservations" as controller
+participant "<<model>>\n:Reservation" as model
+database "<<MongoDB>>\n:reservations" as db
+
+client->router ++: PUT /reservations/:id
+router->protect ++: authenticate()
+protect-->router --: User Validated
+router->authorize ++: checkRole('admin', 'user')
+authorize-->router --: Authorized
+router->controller ++: updateReservation()
+controller->model ++: findByIdAndUpdate()
+
+model->db ++: save()
+db --> model --: success
+
+model --> controller --: updatedReservation
+controller --> client --: 200 OK (Updated)
+@enduml

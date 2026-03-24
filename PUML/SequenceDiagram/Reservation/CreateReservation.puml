@@ -1,0 +1,30 @@
+@startuml Create Reservation (POST)
+
+header Massage Reservation Sequence Diagram : POST
+footer CEDT Chulalongkorn University
+title "Create Reservation"
+
+participant "Client" as client
+participant "<<JavaScript>>\n:server" as server
+participant "<<router>>\n:reservations" as router
+participant "<<middleware>>\n:protect" as protect
+participant "<<middleware>>\n:authorize" as authorize
+participant "<<controllers>>\n:reservations" as controller
+participant "<<model>>\n:Reservation" as model
+database "<<MongoDB>>\n:reservations" as db
+
+client->server ++: POST /reservations
+server->router ++: .post(protect, authorize, addReservation)
+router->protect ++: authenticate()
+protect-->router --: User Validated
+
+router->authorize ++: checkRole('admin', 'user')
+authorize-->router --: Role Authorized
+
+router->controller ++: addReservation()
+controller->model ++: create(data)
+model->db ++: save()
+db --> model --: success
+model --> controller --: result
+controller --> client --: 201 Created
+@enduml

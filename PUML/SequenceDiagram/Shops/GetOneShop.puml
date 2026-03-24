@@ -1,0 +1,20 @@
+@startuml Get Single Shop (GET :id)
+
+header Massage Reservation Sequence Diagram : GET SHOP
+footer CEDT Chulalongkorn University
+title "Get Shop by ID"
+
+participant "Client" as client
+participant "<<router>>\n:shops" as router
+participant "<<controllers>>\n:shops" as controller
+participant "<<model>>\n:Shop" as model
+database "<<MongoDB>>\n:shops" as db
+
+client->router ++: GET /shops/:id
+router->controller ++: getShop()
+controller->model ++: findById(id)
+model->db ++: query
+db --> model --: shop
+model --> controller --: result
+controller --> client --: 200 OK (Shop)
+@enduml
