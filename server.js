@@ -43,7 +43,7 @@ app.use(cookieParser());
 // Enable cors with credentials so frontend can send cookies
 app.use(
     cors({
-        origin: `${process.env.NODE_ENV=="development" ? 'http://localhost:3000' : 'https://jobphobia.vercel.app/'}`,
+        origin: `${process.env.NODE_ENV==="development" ? 'http://localhost:3000' : 'https://jobphobia.vercel.app'}`,
         credentials: true,
     })
 );
