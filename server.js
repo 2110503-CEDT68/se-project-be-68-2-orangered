@@ -17,6 +17,7 @@ const rateLimit = require('express-rate-limit');
 
 // query
 const hpp = require('hpp');
+const path = require("path");
 
 // Cors
 const cors = require('cors');
@@ -25,6 +26,7 @@ const cors = require('cors');
 const shop = require('./routes/shops');
 const reservation = require('./routes/reservations');
 const auth = require('./routes/auth');
+const uploadRoute = require("./controllers/upload");          // adjust path
 
 //load env
 dotenv.config({path:'./config/config.env'});
@@ -69,7 +71,9 @@ app.use(hpp());
 app.use('/api/v1/shops', shop);
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/reservations', reservation);
+app.use("/api/v1/upload", uploadRoute);
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // set parser for pagination
 app.set('query parser', 'extended');
