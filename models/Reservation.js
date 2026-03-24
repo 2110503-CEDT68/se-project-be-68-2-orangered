@@ -16,6 +16,7 @@ const ReservationSchema = new mongoose.Schema({
     required: true,
   },
   massageType: { type: String, required: true },
+  massagePrice: { type: Number, required: true },
   createdAt: {
     type: Date,
     default: Date.now,
