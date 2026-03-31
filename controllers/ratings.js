@@ -114,7 +114,7 @@ exports.addRating = async (req, res, next) => {
                 user: req.user.id,
                 shop: reservation.shopId
             });
-            if (userRatingCount >= 2) {
+            if (userRatingCount >= 5) {
                 return res.status(400).json({
                     success: false,
                     message: "You have reached the maximum limit of 5 ratings"
