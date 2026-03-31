@@ -109,13 +109,17 @@ exports.addRating = async (req, res, next) => {
             });
         }
 
-        // Check if this reservation was already rated
-        const existingRating = await Rating.findOne({ reservation: req.params.reservationId });
-        if (existingRating) {
-            return res.status(400).json({
-                success: false,
-                message: "This reservation has already been rated"
+        if (req.user.role !== 'admin') {
+            const userRatingCount = await Rating.countDocuments({ 
+                user: req.user.id,
+                shop: reservation.shopId
             });
+            if (userRatingCount >= 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: "You have reached the maximum limit of 5 ratings"
+                });
+            }
         }
 
         const rating = await Rating.create({

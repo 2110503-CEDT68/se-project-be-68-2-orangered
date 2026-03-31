@@ -8,7 +8,7 @@ const ratingRouter = require('./ratings');
 
 const {protect, authorize} = require('../middleware/auth');
 
-router.use('/:id/ratings', ratingRouter);
+router.use('/:reservationId/ratings', ratingRouter);
 router.route('/')
     .get(protect, getReservations)
     .post(protect, authorize('admin', 'user'), addReservation);
