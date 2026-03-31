@@ -112,7 +112,7 @@ exports.addRating = async (req, res, next) => {
         if (req.user.role !== 'admin') {
             const userRatingCount = await Rating.countDocuments({ 
                 user: req.user.id,
-                shop: reservation.shopId
+                shop: reservation.shop
             });
             if (userRatingCount >= 5) {
                 return res.status(400).json({
