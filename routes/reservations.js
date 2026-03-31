@@ -4,8 +4,11 @@ const {getReservations, getReservation, addReservation, updateReservation, delet
 
 const router = express.Router({mergeParams: true});
 
+const ratingRouter = require('./ratings');
+
 const {protect, authorize} = require('../middleware/auth');
 
+router.use('/:id/ratings', ratingRouter);
 router.route('/')
     .get(protect, getReservations)
     .post(protect, authorize('admin', 'user'), addReservation);
