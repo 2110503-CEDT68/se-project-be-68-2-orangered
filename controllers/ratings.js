@@ -130,6 +130,8 @@ exports.addRating = async (req, res, next) => {
             review: req.body.review
         });
 
+        await updateShopRating(reservation.shop);
+
         res.status(201).json({
             success: true,
             data: rating
