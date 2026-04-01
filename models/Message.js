@@ -1,35 +1,23 @@
 const mongoose = require("mongoose");
 
 const MessageSchema = new mongoose.Schema({
+  room: {
+    type: String,
+    required: true
+  },
   user: {
     type: mongoose.Schema.ObjectId,
-    ref: "MS_Users",
-    required: true,
+    ref: 'MS_Users',
+    required: true
   },
-  shop: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Shop",
-    required: true,
-  },
-  reservation: {
-    type: mongoose.Schema.ObjectId,
-    ref: "Reservation",
-    required: true,
-  },
-  score: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 5,
-  },
-  review: {
+  text: {
     type: String,
-    maxLength: 500,
+    required: true
   },
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model("Rating", RatingSchema);
+module.exports = mongoose.model('Message', MessageSchema);
