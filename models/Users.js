@@ -21,14 +21,28 @@ const UserSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local'
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     tel: {
         type: String,
-        required: [true, 'Please add a telephone number'],
+        required: function () {
+            return this.authProvider === 'local';
+        },
         match: [/^[0-9]{10}$/, 'Telephone number must be exactly 10 digits'],
     },
     password: {
         type: String,
-        required: [true, 'Please add a password'],
+        required: function () {
+            return this.authProvider === 'local';
+        },
         minlength: 6,
         select: false
     },
@@ -43,7 +57,11 @@ const UserSchema = new mongoose.Schema({
 });
 
 //Encrypt password
-UserSchema.pre('save', async function(next){
+UserSchema.pre('save', async function () {
+    if (!this.password || !this.isModified('password')) {
+        return;
+    }
+
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 })
