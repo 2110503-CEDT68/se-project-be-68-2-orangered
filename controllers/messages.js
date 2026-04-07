@@ -66,3 +66,65 @@ exports.getMessages = async (req, res, next) => {
         });
     }
 };
+
+// @desc    Edit message
+// @route   PUT /api/v1/messages/:id
+exports.editMessage = async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({ success: false, message: "Message not found" });
+        }
+
+        // Only allow owner to edit
+        if (message.user.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: "Not authorized" });
+        }
+
+        message.text = req.body.text;
+        await message.save();
+
+        await message.populate({ path: 'user', select: 'name' });
+
+        // 🔥 notify everyone
+        await pusher.trigger(req.body.roomId, 'editMessage', {
+            _id: message._id,
+            text: message.text,
+            user: message.user,
+            createdAt: message.createdAt,
+            room: message.room
+        });
+        
+        res.status(200).json({ success: true, data: message });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Cannot edit message" });
+    }
+};
+
+// @desc    Delete message
+// @route   DELETE /api/v1/messages/:id
+exports.deleteMessage = async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.id);
+
+        if (!message) {
+            return res.status(404).json({ success: false, message: "Message not found" });
+        }
+
+        if (message.user.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: "Not authorized" });
+        }
+
+        await message.deleteOne();
+
+        // 🔥 notify everyone
+        await pusher.trigger(message.room, 'messageDeleted', {
+            _id: req.params.id
+        });
+
+        res.status(200).json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Cannot delete message" });
+    }
+};
