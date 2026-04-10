@@ -67,6 +67,7 @@ exports.googleLogin = async (req, res, next) => {
         const email = payload.email;
         const googleId = payload.sub;
         const name = payload.name || email.split('@')[0];
+        const tel = payload.tel;
 
         let user = await User.findOne({ email });
 
@@ -76,6 +77,7 @@ exports.googleLogin = async (req, res, next) => {
                 email,
                 authProvider: 'google',
                 googleId,
+                tel,
                 password: crypto.randomBytes(24).toString('hex')
             });
         } else if (user.authProvider !== 'google') {
