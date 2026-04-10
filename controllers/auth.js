@@ -1,4 +1,7 @@
 const User = require('../models/Users');
+const Rating = require('../models/Rating');
+const Message = require('../models/Message');
+const Shop = require('../models/Shop');
 
 exports.register = async (req, res, next) => {
     try{
@@ -37,12 +40,19 @@ exports.login = async (req, res, next) => {
         }
 
         //Check for user
-        const user = await User.findOne({email}).select('password');
+        const user = await User.findOne({email}).select('password status');
 
         if(!user){
             return res.status(401).json({
                 success: false,
                 msg: 'Invalid credentials'
+            });
+        }
+
+        if (user.status === 'inactive') {
+            return res.status(403).json({
+                success: false,
+                msg: 'This account is inactive'
             });
         }
 
@@ -119,6 +129,65 @@ exports.getAll = async (req, res, next) => {
         success: true,
         data: user
     })
+}
+
+exports.deactivateUser = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: `No user with the id of ${req.params.id}`
+            });
+        }
+
+        const ratings = await Rating.find({ user: user._id }).select('shop');
+        const shopIdsByString = new Map(
+            ratings.map((rating) => [rating.shop.toString(), rating.shop])
+        );
+        const affectedShopIds = [...shopIdsByString.keys()];
+
+        await Promise.all([
+            User.findByIdAndUpdate(user._id, { status: 'inactive' }, { new: true, runValidators: true }),
+            Rating.deleteMany({ user: user._id }),
+            Message.deleteMany({ user: user._id })
+        ]);
+
+        await Promise.all(
+            affectedShopIds.map(async (shopId) => {
+                const result = await Rating.aggregate([
+                    { $match: { shop: shopIdsByString.get(shopId) } },
+                    { $group: { _id: '$shop', avgScore: { $avg: '$score' }, count: { $sum: 1 } } }
+                ]);
+
+                if (result.length > 0) {
+                    await Shop.findByIdAndUpdate(shopId, {
+                        averageRating: Math.round(result[0].avgScore * 10) / 10,
+                        ratingCount: result[0].count
+                    });
+                } else {
+                    await Shop.findByIdAndUpdate(shopId, {
+                        averageRating: 0,
+                        ratingCount: 0
+                    });
+                }
+            })
+        );
+
+        const updatedUser = await User.findById(user._id);
+
+        res.status(200).json({
+            success: true,
+            data: updatedUser
+        });
+    } catch (err) {
+        console.log(err.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Cannot deactivate user'
+        });
+    }
 }
 
 exports.logout = async (req, res, next) => {

@@ -85,6 +85,11 @@ exports.googleLogin = async (req, res, next) => {
                 success: false,
                 msg: 'Email is already in use. Please sign in with email/password.'
             });
+        } else if (user.status === 'inactive') {
+            return res.status(403).json({
+                success: false,
+                msg: 'This account is inactive'
+            });
         } else if (!user.googleId) {
             user.googleId = googleId;
             await user.save();
