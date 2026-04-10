@@ -90,6 +90,21 @@ const sendTokenResponse = (user, statusCode, res) => {
     })
 }
 
+exports.uploadAvatar = async (req, res) => {
+    try {
+        const { profilePictureUrl } = req.body;
+        if (!profilePictureUrl) {
+            return res.status(400).json({ success: false, message: 'No URL provided' });
+        }
+
+        await User.findByIdAndUpdate(req.user.id, { profilePicture: profilePictureUrl });
+
+        res.status(200).json({ success: true, profilePicture: profilePictureUrl });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 exports.getMe = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     res.status(200).json({

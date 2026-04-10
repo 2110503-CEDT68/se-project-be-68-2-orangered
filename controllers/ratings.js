@@ -13,7 +13,7 @@ exports.getRatings = async (req, res, next) => {
         if (req.params.shopId) {
             // Get all ratings for a specific shop
             query = Rating.find({ shop: req.params.shopId })
-                .populate({ path: 'user', select: 'name' })
+                .populate({ path: 'user', select: 'name profilePicture' })
                 .populate({ path: 'shop', select: 'name' });
         } else if (req.user.role !== 'admin') {
             // Regular user sees only their own ratings
