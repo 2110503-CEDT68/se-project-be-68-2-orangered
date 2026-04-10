@@ -2,6 +2,7 @@ const User = require('../models/Users');
 const Rating = require('../models/Rating');
 const Message = require('../models/Message');
 const Shop = require('../models/Shop');
+const Reservation = require('../models/Reservation');
 
 exports.register = async (req, res, next) => {
     try{
@@ -143,9 +144,7 @@ exports.deactivateUser = async (req, res, next) => {
         }
 
         const ratings = await Rating.find({ user: user._id }).select('shop');
-        const shopIdsByString = new Map(
-            ratings.map((rating) => [rating.shop.toString(), rating.shop])
-        );
+        const shopIdsByString = buildShopIdMap(ratings);
         const affectedShopIds = [...shopIdsByString.keys()];
 
         await Promise.all([
@@ -154,26 +153,7 @@ exports.deactivateUser = async (req, res, next) => {
             Message.deleteMany({ user: user._id })
         ]);
 
-        await Promise.all(
-            affectedShopIds.map(async (shopId) => {
-                const result = await Rating.aggregate([
-                    { $match: { shop: shopIdsByString.get(shopId) } },
-                    { $group: { _id: '$shop', avgScore: { $avg: '$score' }, count: { $sum: 1 } } }
-                ]);
-
-                if (result.length > 0) {
-                    await Shop.findByIdAndUpdate(shopId, {
-                        averageRating: Math.round(result[0].avgScore * 10) / 10,
-                        ratingCount: result[0].count
-                    });
-                } else {
-                    await Shop.findByIdAndUpdate(shopId, {
-                        averageRating: 0,
-                        ratingCount: 0
-                    });
-                }
-            })
-        );
+        await recalculateShopRatings(shopIdsByString);
 
         const updatedUser = await User.findById(user._id);
 
@@ -189,6 +169,83 @@ exports.deactivateUser = async (req, res, next) => {
         });
     }
 }
+
+exports.hardDeleteUser = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: `No user with the id of ${req.params.id}`
+            });
+        }
+
+        const reservations = await Reservation.find({ user: user._id }).select('_id');
+        const reservationIds = reservations.map((reservation) => reservation._id);
+
+        const ratings = await Rating.find({
+            $or: [
+                { user: user._id },
+                { reservation: { $in: reservationIds } }
+            ]
+        }).select('shop');
+
+        const shopIdsByString = buildShopIdMap(ratings);
+
+        await Promise.all([
+            Rating.deleteMany({
+                $or: [
+                    { user: user._id },
+                    { reservation: { $in: reservationIds } }
+                ]
+            }),
+            Message.deleteMany({ user: user._id }),
+            Reservation.deleteMany({ user: user._id }),
+            User.findByIdAndDelete(user._id)
+        ]);
+
+        await recalculateShopRatings(shopIdsByString);
+
+        res.status(200).json({
+            success: true,
+            data: {}
+        });
+    } catch (err) {
+        console.log(err.stack);
+        res.status(500).json({
+            success: false,
+            message: 'Cannot permanently delete user'
+        });
+    }
+}
+
+const buildShopIdMap = (ratings) => {
+    return new Map(ratings.map((rating) => [rating.shop.toString(), rating.shop]));
+};
+
+const recalculateShopRatings = async (shopIdsByString) => {
+    await Promise.all(
+        [...shopIdsByString.keys()].map(async (shopId) => {
+            const result = await Rating.aggregate([
+                { $match: { shop: shopIdsByString.get(shopId) } },
+                { $group: { _id: '$shop', avgScore: { $avg: '$score' }, count: { $sum: 1 } } }
+            ]);
+
+            if (result.length > 0) {
+                await Shop.findByIdAndUpdate(shopId, {
+                    averageRating: Math.round(result[0].avgScore * 10) / 10,
+                    ratingCount: result[0].count
+                });
+            } else {
+                await Shop.findByIdAndUpdate(shopId, {
+                    averageRating: 0,
+                    ratingCount: 0
+                });
+            }
+        })
+    );
+};
 
 exports.logout = async (req, res, next) => {
     res.cookie('token', 'none', {
