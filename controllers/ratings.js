@@ -4,8 +4,8 @@ const Shop = require('../models/Shop');
 
 // @desc    Get all ratings (admin) or ratings for a shop or by a user
 // @route   GET /api/v1/ratings
-// @route   GET /api/v1/shops/:shopId/ratings
-// @access  Private
+// @route   GET /api/v1/shops/:shopId/rating
+// @access  Public for shop ratings, private for user/admin listing
 exports.getRatings = async (req, res, next) => {
     try {
         let query;
@@ -15,6 +15,11 @@ exports.getRatings = async (req, res, next) => {
             query = Rating.find({ shop: req.params.shopId })
                 .populate({ path: 'user', select: 'name profilePicture' })
                 .populate({ path: 'shop', select: 'name' });
+        } else if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Not authorized to access this route"
+            });
         } else if (req.user.role !== 'admin') {
             // Regular user sees only their own ratings
             query = Rating.find({ user: req.user.id })
@@ -44,25 +49,17 @@ exports.getRatings = async (req, res, next) => {
 
 // @desc    Get single rating
 // @route   GET /api/v1/ratings/:id
-// @access  Private
+// @access  Public
 exports.getRating = async (req, res, next) => {
     try {
         const rating = await Rating.findById(req.params.id)
-            .populate({ path: 'user', select: 'name email' })
+            .populate({ path: 'user', select: 'name profilePicture' })
             .populate({ path: 'shop', select: 'name province tel' });
 
         if (!rating) {
             return res.status(404).json({
                 success: false,
                 message: `No rating with the id of ${req.params.id}`
-            });
-        }
-
-        // Only owner or admin can view
-        if (rating.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({
-                success: false,
-                message: `User ${req.user.id} is not authorized to view this rating`
             });
         }
 
