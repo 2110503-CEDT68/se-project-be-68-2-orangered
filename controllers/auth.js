@@ -124,6 +124,57 @@ exports.getMe = async (req, res, next) => {
     })
 }
 
+exports.updateMe = async (req, res, next) => {
+    try {
+        const updates = {};
+        const { name, email, tel } = req.body;
+
+        if (name !== undefined) {
+            updates.name = String(name).trim();
+        }
+
+        if (email !== undefined) {
+            updates.email = String(email).trim().toLowerCase();
+        }
+
+        if (tel !== undefined) {
+            updates.tel = String(tel).trim();
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No valid fields provided'
+            });
+        }
+
+        if (updates.email) {
+            const existingUser = await User.findOne({ email: updates.email });
+            if (existingUser && existingUser._id.toString() !== req.user.id) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email is already in use'
+                });
+            }
+        }
+
+        const user = await User.findByIdAndUpdate(req.user.id, updates, {
+            new: true,
+            runValidators: true
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (err) {
+        return res.status(400).json({
+            success: false,
+            message: err.message || 'Failed to update profile'
+        });
+    }
+}
+
 exports.getAll = async (req, res, next) => {
     const user = await User.find();
     res.status(200).json({
