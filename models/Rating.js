@@ -14,7 +14,7 @@ const RatingSchema = new mongoose.Schema({
   reservation: {
     type: mongoose.Schema.ObjectId,
     ref: "Reservation",
-    required: true,
+    default: null,
   },
   score: {
     type: Number,

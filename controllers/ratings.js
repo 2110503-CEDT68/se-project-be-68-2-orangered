@@ -84,53 +84,72 @@ exports.getRating = async (req, res, next) => {
 // @access  Private (user/admin)
 exports.addRating = async (req, res, next) => {
     try {
-        const reservation = await Reservation.findById(req.params.reservationId);
+        let reservation = null;
+        let shopId = req.params.shopId || req.body.shop;
 
-        if (!reservation) {
-            return res.status(404).json({
-                success: false,
-                message: `No reservation with the id of ${req.params.reservationId}`
-            });
-        }
+        if (req.params.reservationId) {
+            reservation = await Reservation.findById(req.params.reservationId);
 
-        // Only the reservation owner can rate
-        if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(401).json({
-                success: false,
-                message: `User ${req.user.id} is not authorized to rate this reservation`
-            });
-        }
+            if (!reservation) {
+                return res.status(404).json({
+                    success: false,
+                    message: `No reservation with the id of ${req.params.reservationId}`
+                });
+            }
 
-        // Reservation must be in the past
-        if (new Date(reservation.appDate) > new Date()) {
+            shopId = reservation.shop;
+
+            // Only the reservation owner can rate
+            if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
+                return res.status(401).json({
+                    success: false,
+                    message: `User ${req.user.id} is not authorized to rate this reservation`
+                });
+            }
+
+            // Reservation must be in the past for regular users
+            if (req.user.role !== 'admin' && new Date(reservation.appDate) > new Date()) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Cannot rate a reservation that hasn't occurred yet"
+                });
+            }
+        } else if (req.user.role !== 'admin') {
             return res.status(400).json({
                 success: false,
-                message: "Cannot rate a reservation that hasn't occurred yet"
+                message: "Reservation is required to create a rating"
+            });
+        }
+
+        if (!shopId) {
+            return res.status(400).json({
+                success: false,
+                message: "Shop is required to create a rating"
             });
         }
 
         if (req.user.role !== 'admin') {
             const userRatingCount = await Rating.countDocuments({ 
                 user: req.user.id,
-                shop: reservation.shop
+                shop: shopId
             });
             if (userRatingCount >= 5) {
                 return res.status(400).json({
                     success: false,
-                    message: "You have reached the maximum limit of 5 ratings"
+                    message: "You can review this shop at most 5 times. Please edit or delete one of your old reviews first."
                 });
             }
         }
 
         const rating = await Rating.create({
             user: req.user.id,
-            shop: reservation.shop,
-            reservation: reservation._id,
+            shop: shopId,
+            reservation: reservation?._id || null,
             score: req.body.score,
             review: req.body.review
         });
 
-        await updateShopRating(reservation.shop);
+        await updateShopRating(shopId);
 
         res.status(201).json({
             success: true,
