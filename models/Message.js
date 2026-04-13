@@ -14,6 +14,19 @@ const MessageSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  deleted: {
+    type: Boolean,
+    default: false
+  },
+  editedAt: {
+    type: Date
+  },
+  history: [
+    {
+      text: { type: String },
+      editedAt: { type: Date }
+    }
+  ],
   createdAt: {
     type: Date,
     default: Date.now
