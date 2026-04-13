@@ -1,6 +1,6 @@
 const express = require('express');
 
-const {register, login, getMe, getAll, logout} = require('../controllers/auth');
+const {register, login, getMe, getAll, logout, uploadAvatar, deactivateUser, hardDeleteUser} = require('../controllers/auth');
 const {googleLogin} = require('../controllers/oAuth');
 
 const router = express.Router();
@@ -12,6 +12,9 @@ router.post('/login', login);
 router.post('/google', googleLogin);
 router.get('/me', protect, getMe);
 router.get('/all', protect, authorize('admin'), getAll);
+router.put('/avatar', protect, uploadAvatar);
+router.delete('/:id/hard', protect, authorize('admin'), hardDeleteUser);
+router.delete('/:id', protect, authorize('admin'), deactivateUser);
 router.get('/logout', logout)
 
 

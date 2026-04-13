@@ -69,7 +69,7 @@ const ShopSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    massageType: [
+    massageType: [ 
       {
         name: {
           type: String,

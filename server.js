@@ -3,7 +3,6 @@ setServers(["1.1.1.1", "8.8.8.8"]);
 
 const express = require('express');
 const dotenv = require('dotenv');
-// cookie to store token
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 
@@ -29,15 +28,16 @@ dotenv.config({path:'./config/config.env'});
 connectDB();
 
 const app = express();
+
 //body parser
 app.use(express.json());
 //cookie parser
 app.use(cookieParser());
 
-// Enable cors with credentials so frontend can send cookies
+// 🌟 แก้ไข: อนุญาต CORS ให้อ่านจากพอร์ต 3000 ได้แน่นอน
 app.use(
     cors({
-        origin: `${process.env.NODE_ENV==="development" ? 'http://localhost:3000' : 'https://jobphobia.vercel.app'}`,
+        origin: ['http://localhost:3000', 'https://jobphobia.vercel.app'],
         credentials: true,
     })
 );
@@ -55,26 +55,32 @@ const limiter = rateLimit({
     max: 1000
 });
 
-app.use(limiter)
+app.use(limiter);
 
 // Prevent http param pollution
 app.use(hpp());
 
-//route file
+// ==========================================
+// 1. ROUTE FILES
+// ==========================================
 const shop = require('./routes/shops');
 const reservation = require('./routes/reservations');
 const auth = require('./routes/auth');
 const shopUpload = require("./controllers/shopUpload");
-const rating = require('./routes/ratings')
+const rating = require('./routes/ratings');
 const message = require('./routes/messages');
+const announcementRoutes = require('./routes/announcementRoutes'); // API ประกาศ
 
-//mount router
+// ==========================================
+// 2. MOUNT ROUTERS
+// ==========================================
 app.use("/api/v1/shops", shopUpload);
 app.use('/api/v1/shops', shop);
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/reservations', reservation);
-app.use('/api/v1/ratings', rating)
+app.use('/api/v1/ratings', rating);
 app.use('/api/v1/messages', message);
+app.use('/api/announcements', announcementRoutes); // เส้นทางของ API ประกาศ
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -87,11 +93,10 @@ const server = app.listen(PORT,
     console.log('Server running in ', 
         process.env.NODE_ENV, 
         ' mode on port ', PORT)
-    );
+);
 
-//handle unhandled promise rejectiom
+//handle unhandled promise rejection
 process.on('unhandledRejection', (err, promise) => {
     console.log(`Error: ${err.message}`);
-    //close server && exit port
     server.close(() => process.exit(1));
-})
+});

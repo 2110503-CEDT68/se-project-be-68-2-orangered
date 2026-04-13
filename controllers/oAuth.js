@@ -67,6 +67,7 @@ exports.googleLogin = async (req, res, next) => {
         const email = payload.email;
         const googleId = payload.sub;
         const name = payload.name || email.split('@')[0];
+        const tel = payload.tel;
 
         let user = await User.findOne({ email });
 
@@ -76,12 +77,18 @@ exports.googleLogin = async (req, res, next) => {
                 email,
                 authProvider: 'google',
                 googleId,
+                tel,
                 password: crypto.randomBytes(24).toString('hex')
             });
         } else if (user.authProvider !== 'google') {
             return res.status(409).json({
                 success: false,
                 msg: 'Email is already in use. Please sign in with email/password.'
+            });
+        } else if (user.status === 'inactive') {
+            return res.status(403).json({
+                success: false,
+                msg: 'This account is inactive'
             });
         } else if (!user.googleId) {
             user.googleId = googleId;

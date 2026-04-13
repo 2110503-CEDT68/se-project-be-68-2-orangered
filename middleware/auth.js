@@ -11,7 +11,7 @@ exports.protect = async (req, res, next) => {
 
     //Make sure token exist
     if(!token || token == 'null'){
-        res.status(401).json({
+        return res.status(401).json({
             success: false,
             message: 'Not authorize to access this route'
         });
@@ -24,6 +24,13 @@ exports.protect = async (req, res, next) => {
         console.log(decoded);
 
         req.user = await User.findById(decoded.id);
+
+        if (!req.user || req.user.status === 'inactive') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorize to access this route'
+            });
+        }
 
         next();
     }catch(err){

@@ -16,7 +16,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "sync:be": "cd .. && git subtree push --prefix=backend https://github.com/2110503-CEDT68/se-project-be-68-2-orangered.git main"
   },
   "dependencies": {
     "@exortek/express-mongo-sanitize": "^1.1.1",
@@ -31,7 +32,7 @@
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.0",
-    "mongoose": "^9.2.3",
+    "mongoose": "^9.4.1",
     "multer": "^2.1.1",
     "pusher": "^5.3.3",
     "pusher-js": "^8.4.3"
