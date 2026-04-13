@@ -16,7 +16,7 @@ router.route('/')
     .post(protect, authorize('admin', 'user'), addRating);
 
 router.route('/:id')
-    .get(protect, getRating)
+    .get(getRating)
     .put(protect, authorize('admin', 'user'), updateRating)
     .delete(protect, authorize('admin', 'user'), deleteRating);
 
