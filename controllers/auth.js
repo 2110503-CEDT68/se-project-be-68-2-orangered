@@ -183,6 +183,100 @@ exports.getAll = async (req, res, next) => {
     })
 }
 
+exports.adminUpdateUser = async (req, res, next) => {
+    try {
+        if (req.params.id === req.user.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Use /me to update your own account'
+            });
+        }
+
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: `No user with the id of ${req.params.id}`
+            });
+        }
+
+        const updates = {};
+        const { name, email, tel, role, status, profilePicture } = req.body;
+
+        if (name !== undefined) {
+            updates.name = String(name).trim();
+        }
+
+        if (email !== undefined) {
+            updates.email = String(email).trim().toLowerCase();
+        }
+
+        if (tel !== undefined) {
+            updates.tel = String(tel).trim();
+        }
+
+        if (role !== undefined) {
+            updates.role = role;
+        }
+
+        if (status !== undefined) {
+            updates.status = status;
+        }
+
+        if (profilePicture !== undefined) {
+            if (profilePicture === null || String(profilePicture).trim() === '') {
+                updates.profilePicture = null;
+            } else {
+                const parsedProfilePicture = String(profilePicture).trim();
+
+                try {
+                    new URL(parsedProfilePicture);
+                } catch (err) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Profile picture must be a valid URL'
+                    });
+                }
+
+                updates.profilePicture = parsedProfilePicture;
+            }
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'No valid fields provided'
+            });
+        }
+
+        if (updates.email) {
+            const existingUser = await User.findOne({ email: updates.email });
+            if (existingUser && existingUser._id.toString() !== req.params.id) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email is already in use'
+                });
+            }
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, {
+            new: true,
+            runValidators: true
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: updatedUser
+        });
+    } catch (err) {
+        return res.status(400).json({
+            success: false,
+            message: err.message || 'Failed to update user'
+        });
+    }
+}
+
 exports.deactivateUser = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id);
