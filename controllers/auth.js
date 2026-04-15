@@ -7,6 +7,7 @@ const Reservation = require('../models/Reservation');
 exports.register = async (req, res, next) => {
     try{
         const {name, email, password, tel, role} = req.body;
+        const selectedRole = role === 'shopowner' ? 'shopowner' : 'user';
 
         //Create user
         const user = await User.create({
@@ -14,7 +15,7 @@ exports.register = async (req, res, next) => {
             email,
             password,
             tel,
-            role
+            role: selectedRole
         });
 
         //Create token

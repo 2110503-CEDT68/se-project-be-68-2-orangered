@@ -38,7 +38,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
 exports.googleLogin = async (req, res, next) => {
     try {
-        const { idToken } = req.body;
+        const { idToken, role } = req.body;
 
         if (!idToken) {
             return res.status(400).json({
@@ -68,6 +68,7 @@ exports.googleLogin = async (req, res, next) => {
         const googleId = payload.sub;
         const name = payload.name || email.split('@')[0];
         const tel = payload.tel;
+        const selectedRole = role === 'shopowner' ? 'shopowner' : 'user';
 
         let user = await User.findOne({ email });
 
@@ -75,6 +76,7 @@ exports.googleLogin = async (req, res, next) => {
             user = await User.create({
                 name,
                 email,
+                role: selectedRole,
                 authProvider: 'google',
                 googleId,
                 tel,
