@@ -66,7 +66,13 @@ exports.getReservations = async (req, res, next) => {
         const total = await Reservation.countDocuments(filters);
         const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
-        query = query.sort('appDate').skip(startIndex).limit(limit);
+        const sortOrder = req.query.sort === 'asc' ? 'asc' : 'desc';
+        const sortOption = sortOrder === 'asc' ? 1 : -1;
+
+        query = query
+            .sort({ appDate: sortOption })
+            .skip(startIndex)
+            .limit(limit);
 
         const reservation = await query;
 
