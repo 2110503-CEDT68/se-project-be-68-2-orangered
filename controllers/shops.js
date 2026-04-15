@@ -114,18 +114,52 @@ exports.getShop = async (req, res, next) => {
 
 exports.createShop = async (req, res, next) => {
 
-    console.log("Before Save:", req.body.picture);
-    const shop = await Shop.create(req.body);
-    res.status(201).json({
-        success:true,
-        data:shop
-    });
+    try {
+        const isAdmin = req.user.role === 'admin';
+        const isShopOwner = req.user.role === 'shopowner';
+
+        if (!isAdmin && !isShopOwner) {
+            return res.status(403).json({
+                success: false,
+                error: 'Not authorized to create a shop'
+            });
+        }
+
+        console.log("Before Save:", req.body.picture);
+        const shop = await Shop.create({
+            ...req.body,
+            owner: req.user.id,
+        });
+
+        res.status(201).json({
+            success:true,
+            data:shop
+        });
+    } catch (err) {
+        res.status(400).json({success:false, error: err.message});
+    }
 };
 
 exports.updateShop = async (req, res, next) => {
 
 
     try{
+        const shop = await Shop.findById(req.params.id);
+
+        if(!shop){
+            return res.status(404).json({
+                success:false,
+                error: 'This shop doesnt exist'
+            });
+        }
+
+        if (req.user.role !== 'admin' && shop.owner?.toString() !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                error: 'Not authorized to edit this shop'
+            });
+        }
+
         const shops = await Shop.findByIdAndUpdate(
             req.params.id,
             req.body,
@@ -134,13 +168,6 @@ exports.updateShop = async (req, res, next) => {
                 runValidators: true
             }
         );
-
-        if(!shops){
-            return res.status(404).json({
-                success:false,
-                error: 'This shop doesnt exist'
-            });
-        }
 
         res.status(200).json({
             success:true, 
@@ -156,7 +183,14 @@ exports.deleteShop = async (req, res, next) => {
         const shops = await Shop.findById(req.params.id,);
 
         if(!shops){
-            res.status(400).json({success:false});
+            return res.status(404).json({success:false});
+        }
+
+        if (req.user.role !== 'admin' && shops.owner?.toString() !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                error: 'Not authorized to delete this shop'
+            });
         }
 
         await Reservation.deleteMany({shop: req.params.id});

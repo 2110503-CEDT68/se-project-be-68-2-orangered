@@ -33,6 +33,11 @@ const ShopSchema = new mongoose.Schema(
       required: [true, "Please add an telephone number"],
       match: [/^[0-9]{10}$/, "Telephone number must be exactly 10 digits"],
     },
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MS_Users",
+      required: true,
+    },
     openClose: {
       open: {
         type: String,
