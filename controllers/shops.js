@@ -12,16 +12,16 @@ exports.getShops = async (req, res, next) => {
 
     // Loop over remove fields and delete from reqQuery
     removeFields.forEach(param => delete reqQuery[param]);
-    console.log(reqQuery);
-
     // Create query string
     let queryStr = JSON.stringify(reqQuery);
 
     // Create operator ${gt, lt, in}
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
+    const filters = JSON.parse(queryStr);
+
     // Find resource
-    query = Shop.find(JSON.parse(queryStr)).populate('reservations');
+    query = Shop.find(filters).populate('reservations');
 
     // Select fields
     if(req.query.select) {
@@ -38,23 +38,28 @@ exports.getShops = async (req, res, next) => {
     }
 
     // Pagination
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 25;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 25, 1);
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     
 
     try{
-        const total = await Shop.countDocuments();
+        const total = await Shop.countDocuments(filters);
+        const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
 
         query = query.skip(startIndex).limit(limit);
 
         // Executing query
         const shops = await query;
-        console.log(req.query);
 
         // Pagination result
-        const pagination = {};
+        const pagination = {
+            page,
+            limit,
+            total,
+            totalPages
+        };
 
         if (endIndex < total) {
             pagination.next = {

@@ -3,22 +3,30 @@ const Shop = require('../models/Shop');
 
 exports.getReservations = async (req, res, next) => {
     let query;
+    let filters = {};
+
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
     // General user can see only their reservation
     if(req.user.role !== 'admin'){
-        query = Reservation.find({user:req.user.id}).populate({
+        filters = { user: req.user.id };
+        query = Reservation.find(filters).populate({
             path: 'shop',
             select: 'name province tel'
-        })
+        });
     // Can see everyone on admin
     }else{ 
         if(req.params.shopId) {
-            console.log(req.params.shopId);
-            query = Reservation.find({shop: req.params.shopId}).populate({
+            filters = { shop: req.params.shopId };
+            query = Reservation.find(filters).populate({
                 path: 'user',
                 select: 'name tel email'
-            });;
+            });
         }else{
-            query = Reservation.find().populate({
+            query = Reservation.find(filters).populate({
                 path: 'shop',
                 select: 'name province tel'
             }).populate({
@@ -29,11 +37,38 @@ exports.getReservations = async (req, res, next) => {
     }
 
     try{
+        const total = await Reservation.countDocuments(filters);
+        const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
+        query = query.sort('-appDate').skip(startIndex).limit(limit);
+
         const reservation = await query;
+
+        const pagination = {
+            page,
+            limit,
+            total,
+            totalPages
+        };
+
+        if (endIndex < total) {
+            pagination.next = {
+                page: page + 1,
+                limit
+            };
+        }
+
+        if (startIndex > 0) {
+            pagination.prev = {
+                page: page - 1,
+                limit
+            };
+        }
 
         res.status(200).json({
             success: true,
             count: reservation.length,
+            pagination,
             data: reservation
         })
     }catch(err){
