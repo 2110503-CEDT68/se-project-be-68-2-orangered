@@ -296,7 +296,6 @@ exports.deactivateUser = async (req, res, next) => {
         await Promise.all([
             User.findByIdAndUpdate(user._id, { status: 'inactive' }, { new: true, runValidators: true }),
             Rating.deleteMany({ user: user._id }),
-            Message.deleteMany({ user: user._id })
         ]);
 
         await recalculateShopRatings(shopIdsByString);
