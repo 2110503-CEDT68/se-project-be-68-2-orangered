@@ -36,7 +36,7 @@ app.use(cookieParser());
 
 app.use(
     cors({
-        origin: ['http://localhost:3000', 'https://jobphobia.vercel.app'],
+        origin: ['http://localhost:3000', 'https://orange-red-phi.vercel.app'],
         credentials: true,
     })
 );
