@@ -127,6 +127,16 @@ exports.editMessage = async (req, res) => {
 exports.getRooms = async (req, res) => {
     try {
         const shopId = req.params.shopId;
+
+        // Only admin or the shop owner can view all rooms
+        if (req.user.role !== 'admin') {
+            const Shop = require('../models/Shop');
+            const shop = await Shop.findById(shopId);
+            if (!shop || shop.owner.toString() !== req.user.id) {
+                return res.status(403).json({ success: false, message: "Not authorized to view this shop's chats" });
+            }
+        }
+
         const rooms = await Message.distinct('room', {
             room: new RegExp(`^${shopId}_`)
         });
