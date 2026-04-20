@@ -34,12 +34,12 @@ exports.getShops = async (req, res, next) => {
         const sortBy = req.query.sort.split(',').join(' ');
         query = query.sort(sortBy);
     }else {
-        query = query.sort('-createdAt');
+        query = query.sort('-_id');
     }
 
     // Pagination
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
-    const limit = Math.max(parseInt(req.query.limit, 10) || 25, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 6, 1);
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     
