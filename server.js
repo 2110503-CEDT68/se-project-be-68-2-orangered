@@ -21,6 +21,10 @@ const path = require("path");
 // Cors
 const cors = require('cors');
 
+// Swagger
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 //load env
 dotenv.config({path:'./config/config.env'});
 
@@ -82,6 +86,8 @@ app.use('/api/v1/messages', message);
 app.use('/api/announcements', announcementRoutes); // เส้นทางของ API ประกาศ
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // set parser for pagination
 app.set('query parser', 'extended');
