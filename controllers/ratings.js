@@ -1,6 +1,7 @@
 const Rating = require('../models/Rating');
 const Reservation = require('../models/Reservation');
 const Shop = require('../models/Shop');
+const { updateShopRating } = require("../utils/updateShopRating")
 
 // @desc    Get all ratings (admin) or ratings for a shop or by a user
 // @route   GET /api/v1/ratings
@@ -246,20 +247,3 @@ exports.deleteRating = async (req, res, next) => {
         });
     }
 };
-
-// Helper: recalculate and update shop's averageRating and ratingCount
-async function updateShopRating(shopId) {
-    const result = await Rating.aggregate([
-        { $match: { shop: shopId } },
-        { $group: { _id: '$shop', avgScore: { $avg: '$score' }, count: { $sum: 1 } } }
-    ]);
-
-    if (result.length > 0) {
-        await Shop.findByIdAndUpdate(shopId, {
-            averageRating: Math.round(result[0].avgScore * 10) / 10,
-            ratingCount: result[0].count
-        });
-    } else {
-        await Shop.findByIdAndUpdate(shopId, { averageRating: 0, ratingCount: 0 });
-    }
-}

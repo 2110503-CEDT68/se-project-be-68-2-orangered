@@ -1,7 +1,7 @@
-const { getRatings } = require('../controllers/ratings'); // adjust path
-const Rating = require('../models/Rating');
+const { getRatings } = require('../../controllers/ratings'); // adjust path
+const Rating = require('../../models/Rating');
 
-jest.mock('../models/Rating');
+jest.mock('../../models/Rating');
 
 describe('getRatings', () => {
     let req, res;
