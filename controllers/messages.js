@@ -47,7 +47,6 @@ exports.sendMessage = async (req, res, next) => {
             data: message
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             message: "Cannot send message"

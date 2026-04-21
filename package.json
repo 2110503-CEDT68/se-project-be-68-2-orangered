@@ -16,6 +16,8 @@
   "main": "server.js",
   "scripts": {
     "test": "npx jest",
+    "test-messages": "npx jest test/messages",
+    "test-rating": "npx jest test/rating",
     "dev": "nodemon server.js",
     "sync:be": "cd .. && git subtree push --prefix=backend https://github.com/2110503-CEDT68/se-project-be-68-2-orangered.git main"
   },

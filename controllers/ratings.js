@@ -40,7 +40,6 @@ exports.getRatings = async (req, res, next) => {
             data: ratings
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             message: "Cannot find ratings"
@@ -69,7 +68,6 @@ exports.getRating = async (req, res, next) => {
             data: rating
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             message: "Cannot find rating"
@@ -154,7 +152,6 @@ exports.addRating = async (req, res, next) => {
             data: rating
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             message: "Cannot create rating"
@@ -201,7 +198,6 @@ exports.updateRating = async (req, res, next) => {
             data: rating
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             message: "Cannot update rating"
@@ -240,7 +236,6 @@ exports.deleteRating = async (req, res, next) => {
             data: {}
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             success: false,
             message: "Cannot delete rating"
