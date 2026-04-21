@@ -144,6 +144,13 @@ exports.getReservation = async (req, res, next) => {
 
 exports.addReservation = async (req, res, next) => {
     try{
+        if (req.user.role === 'shopowner') {
+            return res.status(403).json({
+                success: false,
+                message: 'Shop owners are not allowed to create reservations'
+            });
+        }
+
         req.body.shop = req.params.shopId;
 
         const shop = await Shop.findById(req.params.shopId)
