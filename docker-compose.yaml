@@ -1,0 +1,15 @@
+services:
+  backend:
+    build: .
+    container_name: orangered_backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - config/config.env
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:
+    external: true
