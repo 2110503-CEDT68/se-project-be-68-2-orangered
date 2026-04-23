@@ -109,6 +109,18 @@ const options = {
                         reservation: { type: 'string' },
                     },
                 },
+                Announcement: {
+                    type: 'object',
+                    properties: {
+                        _id: { type: 'string' },
+                        title: { type: 'string' },
+                        content: { type: 'string' },
+                        imageUrl: { type: 'string', nullable: true },
+                        shop: { type: 'string' },
+                        createdAt: { type: 'string', format: 'date-time' },
+                        updatedAt: { type: 'string', format: 'date-time' },
+                    },
+                },
                 Error: {
                     type: 'object',
                     properties: {
