@@ -1,0 +1,43 @@
+name: Discord Notifier
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+    types: [opened, reopened]
+
+jobs:
+  notify_push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Message (Push)
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: info
+          details: |
+            **📦 New Push to Main**
+            **Project:** ${{ github.repository }}
+            **Branch:** `${{ github.ref_name }}`
+            **User:** ${{ github.actor }}
+            **Commit:** ${{ github.event.head_commit.message }}
+            **Link:** ${{ github.event.compare }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
+  notify_pr:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Message (Pull Request)
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: info
+          details: |
+            **🔀 New Pull Request**
+            **Project:** ${{ github.repository }}
+            **Title:** ${{ github.event.pull_request.title }}
+            **Author:** ${{ github.actor }}
+            **Branch:** `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            **Link:** ${{ github.event.pull_request.html_url }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
