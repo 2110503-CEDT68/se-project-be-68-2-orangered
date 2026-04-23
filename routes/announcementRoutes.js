@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Announcement = require('../models/Announcement');
 const Shop = require('../models/Shop');
+// const { }
 const { protect, authorize } = require('../middleware/auth');
 
 // GET: ดึงข้อมูลประกาศของร้านเฉพาะร้าน (Public)

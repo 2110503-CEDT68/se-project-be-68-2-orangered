@@ -186,7 +186,7 @@ router.route('/')
  */
 router.route('/:id')
     .get(protect, getReservation)
-    .put(protect, authorize('admin', 'user'), updateReservation)
-    .delete(protect, authorize('admin', 'user'), deleteReservation);
+    .put(protect, authorize('admin', 'user', 'shopowner'), updateReservation)
+    .delete(protect, authorize('admin', 'user', 'shopowner'), deleteReservation);
 
 module.exports = router;
