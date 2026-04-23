@@ -19,7 +19,8 @@
     "test-messages": "npx jest test/messages",
     "test-rating": "npx jest test/rating",
     "dev": "nodemon server.js",
-    "sync:be": "cd .. && git subtree push --prefix=backend https://github.com/2110503-CEDT68/se-project-be-68-2-orangered.git main"
+    "sync:be": "cd .. && git subtree push --prefix=backend https://github.com/2110503-CEDT68/se-project-be-68-2-orangered.git main",
+    "test-announcement": "npx jest test/announcement"
   },
   "dependencies": {
     "@exortek/express-mongo-sanitize": "^1.1.1",
@@ -42,6 +43,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "jest": "^30.3.0",
     "nodemon": "^3.1.14"
   }
 }
