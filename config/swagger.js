@@ -11,6 +11,7 @@ const options = {
         servers: [
             { url: 'http://localhost:5000', description: 'Local' },
             { url: 'https://orange-red-phi.vercel.app', description: 'Production' },
+            { url: 'https://backend.app', description: 'Docker' },
         ],
         components: {
             securitySchemes: {

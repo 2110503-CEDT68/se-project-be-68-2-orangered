@@ -32,6 +32,13 @@ dotenv.config({path:'./config/config.env'});
 connectDB();
 
 const app = express();
+const allowedOrigins = (
+    process.env.CORS_ORIGIN ||
+    'http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000,https://orange-red-phi.vercel.app'
+)
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
 //body parser
 app.use(express.json());
@@ -40,7 +47,13 @@ app.use(cookieParser());
 
 app.use(
     cors({
-        origin: ['http://localhost:3000', 'https://orange-red-phi.vercel.app'],
+        origin(origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
         credentials: true,
     })
 );
