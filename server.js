@@ -96,7 +96,7 @@ app.use('/api/v1/auth', auth);
 app.use('/api/v1/reservations', reservation);
 app.use('/api/v1/ratings', rating);
 app.use('/api/v1/messages', message);
-app.use('/api/announcements', announcementRoutes); // เส้นทางของ API ประกาศ
+app.use('/api/v1/announcements', announcementRoutes); // เส้นทางของ API ประกาศ
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
