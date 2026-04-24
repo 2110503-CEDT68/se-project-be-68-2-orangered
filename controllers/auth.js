@@ -3,16 +3,31 @@ const Rating = require('../models/Rating');
 const Message = require('../models/Message');
 const Shop = require('../models/Shop');
 const Reservation = require('../models/Reservation');
+const {
+    archiveDeletedUser,
+    isArchivedEmail,
+    listArchivedUsers,
+    restoreArchivedEmailById,
+    normalizeEmail,
+} = require('../utils/userArchive');
 
 exports.register = async (req, res, next) => {
     try{
         const {name, email, password, tel, role} = req.body;
+        const normalizedEmail = normalizeEmail(email);
         const selectedRole = role === 'shopowner' ? 'shopowner' : 'user';
+
+        if (await isArchivedEmail(normalizedEmail)) {
+            return res.status(403).json({
+                success: false,
+                msg: 'This email address cannot be used again'
+            });
+        }
 
         //Create user
         const user = await User.create({
             name,
-            email,
+            email: normalizedEmail,
             password,
             tel,
             role: selectedRole
@@ -28,8 +43,9 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
     try{
         const {email, password} =req.body;
+        const normalizedEmail = normalizeEmail(email);
         //Validate email & password
-        if(!email || !password){
+        if(!normalizedEmail || !password){
             return res.status(400).json({
                 success: false,
                 msg: 'Please provide an email and password'
@@ -37,7 +53,7 @@ exports.login = async (req, res, next) => {
         }
 
         //Check for user
-        const user = await User.findOne({email}).select('password status');
+        const user = await User.findOne({email: normalizedEmail}).select('password status');
 
         if(!user){
             return res.status(401).json({
@@ -130,7 +146,7 @@ exports.updateMe = async (req, res, next) => {
         }
 
         if (email !== undefined) {
-            updates.email = String(email).trim().toLowerCase();
+            updates.email = normalizeEmail(email);
         }
 
         if (tel !== undefined) {
@@ -145,6 +161,13 @@ exports.updateMe = async (req, res, next) => {
         }
 
         if (updates.email) {
+            if (await isArchivedEmail(updates.email)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This email address cannot be used again'
+                });
+            }
+
             const existingUser = await User.findOne({ email: updates.email });
             if (existingUser && existingUser._id.toString() !== req.user.id) {
                 return res.status(400).json({
@@ -173,9 +196,11 @@ exports.updateMe = async (req, res, next) => {
 
 exports.getAll = async (req, res, next) => {
     const user = await User.find();
+    const archivedUsers = await listArchivedUsers();
     res.status(200).json({
         success: true,
-        data: user
+        data: user,
+        archivedData: archivedUsers
     })
 }
 
@@ -205,7 +230,7 @@ exports.adminUpdateUser = async (req, res, next) => {
         }
 
         if (email !== undefined) {
-            updates.email = String(email).trim().toLowerCase();
+            updates.email = normalizeEmail(email);
         }
 
         if (tel !== undefined) {
@@ -247,6 +272,13 @@ exports.adminUpdateUser = async (req, res, next) => {
         }
 
         if (updates.email) {
+            if (await isArchivedEmail(updates.email)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This email address cannot be used again'
+                });
+            }
+
             const existingUser = await User.findOne({ email: updates.email });
             if (existingUser && existingUser._id.toString() !== req.params.id) {
                 return res.status(400).json({
@@ -333,6 +365,8 @@ exports.hardDeleteUser = async (req, res, next) => {
 
         const shopIdsByString = buildShopIdMap(ratings);
 
+        await archiveDeletedUser(user);
+
         await Promise.all([
             Rating.deleteMany({
                 $or: [
@@ -356,6 +390,29 @@ exports.hardDeleteUser = async (req, res, next) => {
         res.status(500).json({
             success: false,
             message: 'Cannot permanently delete user'
+        });
+    }
+}
+
+exports.restoreDeletedEmail = async (req, res, next) => {
+    try {
+        const archivedUser = await restoreArchivedEmailById(req.params.id);
+
+        if (!archivedUser) {
+            return res.status(404).json({
+                success: false,
+                message: `No archived email entry with the id of ${req.params.id}`
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: archivedUser
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: 'Cannot restore archived email'
         });
     }
 }
