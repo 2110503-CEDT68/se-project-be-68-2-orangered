@@ -85,7 +85,6 @@ exports.createAnnouncement = async (req, res) => {
     }
 };
 
-
 // @desc    Update an announcement
 // @route   PUT /api/v1/announcements/:id
 exports.updateAnnouncement = async (req, res) => {
