@@ -23,20 +23,20 @@ exports.getAllAnnouncements = async (req, res) => {
     }
 };
 
-// @desc    Get announcements (filtered by shop for shopowner, all for admin)
+// @desc    Get announcements (filtered by all owner shops for shopowner, all for admin)
 // @route   GET /api/v1/announcements
 exports.getAnnouncements = async (req, res) => {
     try {
         let query = {};
         if (req.user.role === 'shopowner') {
-            const shop = await Shop.findOne({ owner: req.user.id });
-            if (shop) {
-                query.shop = shop._id;
-            } else {
+            // ดึงร้านทั้งหมดของ shopowner คนนี้
+            const shops = await Shop.find({ owner: req.user.id });
+            if (shops.length === 0) {
                 return res.status(200).json({ success: true, data: [] });
             }
+            query.shop = { $in: shops.map(s => s._id) };
         }
-        const announcements = await Announcement.find(query).sort({ createdAt: -1 });
+        const announcements = await Announcement.find(query).populate('shop', 'name picture').sort({ createdAt: -1 });
         res.status(200).json({ success: true, data: announcements });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -48,29 +48,43 @@ exports.getAnnouncements = async (req, res) => {
 exports.createAnnouncement = async (req, res) => {
     try {
         const { title, content, imageUrl } = req.body;
+        const requestedShopId = req.body.shop;
 
-        let shopId;
+        let resolvedShopId;
+
         if (req.user.role === 'shopowner') {
-            const shop = await Shop.findOne({ owner: req.user.id });
-            if (!shop) {
-                return res.status(404).json({ success: false, message: 'Shop not found for this user' });
+            if (requestedShopId) {
+                // ตรวจสอบว่าร้านที่ระบุเป็นของตัวเองจริง
+                const shop = await Shop.findOne({ _id: requestedShopId, owner: req.user.id });
+                if (!shop) {
+                    return res.status(403).json({ success: false, message: 'You are not the owner of this shop' });
+                }
+                resolvedShopId = shop._id;
+            } else {
+                // fallback: ใช้ร้านแรกที่เจอ
+                const shop = await Shop.findOne({ owner: req.user.id });
+                if (!shop) {
+                    return res.status(404).json({ success: false, message: 'Shop not found for this user' });
+                }
+                resolvedShopId = shop._id;
             }
-            shopId = shop._id;
         } else {
-            shopId = req.body.shop;
+            // admin ส่ง shopId มาตรงๆ
+            resolvedShopId = requestedShopId;
         }
 
         const newAnnouncement = await Announcement.create({
             title,
             content,
             imageUrl,
-            shop: shopId
+            shop: resolvedShopId
         });
         res.status(201).json({ success: true, data: newAnnouncement });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
 
 // @desc    Update an announcement
 // @route   PUT /api/v1/announcements/:id
