@@ -1,6 +1,6 @@
 const express = require('express');
 
-const {register, login, getMe, updateMe, getAll, adminUpdateUser, logout, uploadAvatar, deactivateUser, hardDeleteUser} = require('../controllers/auth');
+const {register, login, getMe, updateMe, getAll, adminUpdateUser, logout, uploadAvatar, deactivateUser, hardDeleteUser, restoreDeletedEmail} = require('../controllers/auth');
 const {googleLogin} = require('../controllers/oAuth');
 
 const router = express.Router();
@@ -232,7 +232,7 @@ router.put('/avatar', protect, uploadAvatar);
  *     tags: [Auth]
  *     responses:
  *       200:
- *         description: List of all users
+ *         description: List of all users and archived email entries
  *         content:
  *           application/json:
  *             schema:
@@ -242,6 +242,14 @@ router.put('/avatar', protect, uploadAvatar);
  *                 data:
  *                   type: array
  *                   items: { $ref: '#/components/schemas/User' }
+ *                 archivedData:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       email: { type: string }
+ *                       name: { type: string }
+ *                       deletedAt: { type: string, format: date-time }
  *       403:
  *         description: Not authorized
  *         content:
@@ -334,6 +342,40 @@ router.put('/:id', protect, authorize('admin'), adminUpdateUser);
  *             schema: { $ref: '#/components/schemas/Error' }
  */
 router.delete('/:id/hard', protect, authorize('admin'), hardDeleteUser);
+
+/**
+ * @swagger
+ * /api/v1/auth/archived/{id}/restore:
+ *   delete:
+ *     summary: Restore a blocked archived email so it can register again (admin only)
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Archived email restored
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data: { type: object }
+ *       403:
+ *         description: Not authorized
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       404:
+ *         description: Archived email not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
+router.delete('/archived/:id/restore', protect, authorize('admin'), restoreDeletedEmail);
 
 /**
  * @swagger

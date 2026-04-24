@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const User = require('../models/Users');
+const { isArchivedEmail, normalizeEmail } = require('../utils/userArchive');
 
 const getTokenInfo = async (idToken) => {
     const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
@@ -64,11 +65,18 @@ exports.googleLogin = async (req, res, next) => {
             });
         }
 
-        const email = payload.email;
+        const email = normalizeEmail(payload.email);
         const googleId = payload.sub;
         const name = payload.name || email.split('@')[0];
         const tel = payload.tel;
         const selectedRole = role === 'shopowner' ? 'shopowner' : 'user';
+
+        if (await isArchivedEmail(email)) {
+            return res.status(403).json({
+                success: false,
+                msg: 'This email address cannot be used again'
+            });
+        }
 
         let user = await User.findOne({ email });
 
