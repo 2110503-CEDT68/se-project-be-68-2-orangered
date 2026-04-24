@@ -168,6 +168,17 @@ router.route('/').get(getShops).post(protect, authorize('shopowner', 'admin'), c
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Error' }
  */
+// GET /api/v1/shops/mine — ดึงเฉพาะร้านของ shopowner ที่ล็อกอินอยู่ (ต้องอยู่ก่อน /:id)
+router.get('/mine', protect, authorize('shopowner', 'admin'), async (req, res) => {
+    try {
+        const Shop = require('../models/Shop');
+        const shops = await Shop.find({ owner: req.user.id }).sort({ createdAt: -1 });
+        res.status(200).json({ success: true, data: shops });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 router.route('/:id').get(getShop).put(protect, authorize('shopowner', 'admin'), updateShop).delete(protect, authorize('shopowner', 'admin'), deleteShop);
 
 module.exports = router;
