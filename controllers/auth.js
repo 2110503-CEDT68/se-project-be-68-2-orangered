@@ -53,6 +53,13 @@ exports.login = async (req, res, next) => {
         }
 
         //Check for user
+        if (await isArchivedEmail(normalizedEmail)) {
+            return res.status(403).json({
+                success: false,
+                msg: "Access to this account has been suspended due to a policy violation."
+            });
+        }
+
         const user = await User.findOne({email: normalizedEmail}).select('password status');
 
         if(!user){
