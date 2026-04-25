@@ -24,6 +24,17 @@ exports.register = async (req, res, next) => {
             });
         }
 
+        const existingUser = await User.findOne({
+            email: normalizedEmail
+        });
+
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                msg: 'Email already registered'
+            });
+        }
+
         //Create user
         const user = await User.create({
             name,
