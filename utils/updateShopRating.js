@@ -1,7 +1,15 @@
+const mongoose = require("mongoose");
+const Rating = require("../models/Rating");
+const Shop = require("../models/Shop");
+
 // Helper: recalculate and update shop's averageRating and ratingCount
 exports.updateShopRating = async (shopId) => {
+    const normalizedShopId = mongoose.Types.ObjectId.isValid(shopId)
+        ? new mongoose.Types.ObjectId(shopId)
+        : shopId;
+
     const result = await Rating.aggregate([
-        { $match: { shop: shopId } },
+        { $match: { shop: normalizedShopId } },
         { $group: { _id: '$shop', avgScore: { $avg: '$score' }, count: { $sum: 1 } } }
     ]);
 
