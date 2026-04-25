@@ -74,7 +74,7 @@ exports.googleLogin = async (req, res, next) => {
         if (await isArchivedEmail(email)) {
             return res.status(403).json({
                 success: false,
-                msg: 'This email address cannot be used again'
+                msg: "Access to this account has been suspended due to a policy violation."
             });
         }
 
