@@ -26,43 +26,54 @@ describe('getAnnouncements', () => {
             { _id: 'ann2', title: 'Notice B', shop: 'shop2' }
         ];
 
+        // admin ไม่ filter shop → Announcement.find({}).populate().sort()
         Announcement.find = jest.fn().mockReturnValue({
-            sort: jest.fn().mockResolvedValue(mockAnnouncements)
+            populate: jest.fn().mockReturnValue({
+                sort: jest.fn().mockResolvedValue(mockAnnouncements)
+            })
         });
 
         await getAnnouncements(req, res);
 
-        // Admin should get all announcements (no filter)
         expect(Announcement.find).toHaveBeenCalledWith({});
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ success: true, data: mockAnnouncements });
     });
 
-    it('should return only own shop announcements for shopowner', async () => {
+    it('should return only own shops announcements for shopowner (multiple shops)', async () => {
         const req = { user: { id: 'owner1', role: 'shopowner' } };
         const res = mockRes();
 
-        const mockShop = { _id: 'shop1' };
-        const mockAnnouncements = [{ _id: 'ann1', title: 'My Notice', shop: 'shop1' }];
+        const mockShops = [{ _id: 'shop1' }, { _id: 'shop2' }];
+        const mockAnnouncements = [
+            { _id: 'ann1', title: 'Notice A', shop: 'shop1' },
+            { _id: 'ann2', title: 'Notice B', shop: 'shop2' }
+        ];
 
-        Shop.findOne.mockResolvedValue(mockShop);
+        // ตอนนี้ใช้ Shop.find() แทน Shop.findOne()
+        Shop.find.mockResolvedValue(mockShops);
         Announcement.find = jest.fn().mockReturnValue({
-            sort: jest.fn().mockResolvedValue(mockAnnouncements)
+            populate: jest.fn().mockReturnValue({
+                sort: jest.fn().mockResolvedValue(mockAnnouncements)
+            })
         });
 
         await getAnnouncements(req, res);
 
-        expect(Shop.findOne).toHaveBeenCalledWith({ owner: 'owner1' });
-        expect(Announcement.find).toHaveBeenCalledWith({ shop: mockShop._id });
+        expect(Shop.find).toHaveBeenCalledWith({ owner: 'owner1' });
+        expect(Announcement.find).toHaveBeenCalledWith({
+            shop: { $in: mockShops.map(s => s._id) }
+        });
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ success: true, data: mockAnnouncements });
     });
 
-    it('should return empty array if shopowner has no shop', async () => {
+    it('should return empty array if shopowner has no shops', async () => {
         const req = { user: { id: 'owner_no_shop', role: 'shopowner' } };
         const res = mockRes();
 
-        Shop.findOne.mockResolvedValue(null);
+        // ไม่มีร้านเลย
+        Shop.find.mockResolvedValue([]);
 
         await getAnnouncements(req, res);
 
@@ -75,7 +86,9 @@ describe('getAnnouncements', () => {
         const res = mockRes();
 
         Announcement.find = jest.fn().mockReturnValue({
-            sort: jest.fn().mockRejectedValue(new Error('DB error'))
+            populate: jest.fn().mockReturnValue({
+                sort: jest.fn().mockRejectedValue(new Error('DB error'))
+            })
         });
 
         await getAnnouncements(req, res);
