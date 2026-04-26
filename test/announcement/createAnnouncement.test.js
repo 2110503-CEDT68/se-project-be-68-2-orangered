@@ -90,4 +90,41 @@ describe('createAnnouncement', () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
     });
+
+    it('should return 403 if shopowner requests a shop they do not own', async () => {
+        const req = {
+            body: { title: 'Test', content: 'Test', shop: 'not_my_shop' },
+            user: { id: 'owner1', role: 'shopowner' }
+        };
+        const res = mockRes();
+
+        // Shop.findOne returns null because owner != owner1 for this shop
+        Shop.findOne.mockResolvedValue(null);
+
+        await createAnnouncement(req, res);
+
+        expect(Shop.findOne).toHaveBeenCalledWith({ _id: 'not_my_shop', owner: 'owner1' });
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({ success: false, message: 'You are not the owner of this shop' });
+    });
+
+    it('should create announcement with requested shop if shopowner owns it', async () => {
+        const req = {
+            body: { title: 'My Shop Notice', content: 'Sale!', shop: 'my_shop_1' },
+            user: { id: 'owner1', role: 'shopowner' }
+        };
+        const res = mockRes();
+
+        const mockShop = { _id: 'my_shop_1', owner: 'owner1' };
+        const mockAnnouncement = { _id: 'ann3', title: 'My Shop Notice', shop: 'my_shop_1' };
+
+        Shop.findOne.mockResolvedValue(mockShop);
+        Announcement.create.mockResolvedValue(mockAnnouncement);
+
+        await createAnnouncement(req, res);
+
+        expect(Shop.findOne).toHaveBeenCalledWith({ _id: 'my_shop_1', owner: 'owner1' });
+        expect(Announcement.create).toHaveBeenCalledWith(expect.objectContaining({ shop: 'my_shop_1' }));
+        expect(res.status).toHaveBeenCalledWith(201);
+    });
 });
