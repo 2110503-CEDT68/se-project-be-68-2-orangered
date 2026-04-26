@@ -52,7 +52,7 @@ exports.createAnnouncement = async (req, res) => {
 
         let resolvedShopId;
 
-        if (req.user.role === 'shopowner' || req.user.role === 'admin') {
+        if (req.user.role === 'shopowner') {
             if (requestedShopId) {
                 // ตรวจสอบว่าร้านที่ระบุเป็นของตัวเองจริง
                 const shop = await Shop.findOne({ _id: requestedShopId, owner: req.user.id });
