@@ -345,7 +345,7 @@ exports.deactivateUser = async (req, res, next) => {
 
         await recalculateShopRatings(shopIdsByString);
 
-        await archiveDeletedUser(user);
+        // await archiveDeletedUser(user);
 
         const updatedUser = await User.findById(user._id);
 
