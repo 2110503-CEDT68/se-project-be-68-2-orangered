@@ -18,9 +18,9 @@
     "test": "npx jest",
     "test-messages": "npx jest test/messages",
     "test-rating": "npx jest test/rating",
+    "test-announcement": "npx jest test/announcement",
     "dev": "nodemon server.js",
-    "sync:be": "cd .. && git subtree push --prefix=backend https://github.com/2110503-CEDT68/se-project-be-68-2-orangered.git main",
-    "test-announcement": "npx jest test/announcement"
+    "sync:be": "cd .. && git subtree push --prefix=backend https://github.com/2110503-CEDT68/se-project-be-68-2-orangered.git main"
   },
   "dependencies": {
     "@exortek/express-mongo-sanitize": "^1.1.1",

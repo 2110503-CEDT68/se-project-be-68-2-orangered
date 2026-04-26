@@ -5,82 +5,106 @@ const Shop = require('../../models/Shop');
 jest.mock('../../models/Announcement');
 jest.mock('../../models/Shop');
 
-const mockRes = () => {
-    const res = {};
-    res.status = jest.fn().mockReturnValue(res);
-    res.json = jest.fn().mockReturnValue(res);
-    return res;
-};
-
 describe('getAnnouncements', () => {
-    afterEach(() => {
+    let req, res;
+
+    beforeEach(() => {
+        req = {
+            user: {
+                id: 'owner1',
+                role: 'shopowner'
+            }
+        };
+
+        res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+
         jest.clearAllMocks();
     });
 
-    it('should return all announcements for admin', async () => {
-        const req = { user: { id: 'admin1', role: 'admin' } };
-        const res = mockRes();
+    test('should return all announcements for admin', async () => {
+        req.user.role = 'admin';
 
         const mockAnnouncements = [
-            { _id: 'ann1', title: 'Notice A', shop: 'shop1' },
-            { _id: 'ann2', title: 'Notice B', shop: 'shop2' }
+            { _id: '1', title: 'A1' },
+            { _id: '2', title: 'A2' }
         ];
 
-        Announcement.find = jest.fn().mockReturnValue({
-            sort: jest.fn().mockResolvedValue(mockAnnouncements)
+        Announcement.find.mockReturnValue({
+            populate: jest.fn().mockReturnValue({
+                sort: jest.fn().mockResolvedValue(mockAnnouncements)
+            })
         });
 
         await getAnnouncements(req, res);
 
-        // Admin should get all announcements (no filter)
         expect(Announcement.find).toHaveBeenCalledWith({});
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ success: true, data: mockAnnouncements });
+        expect(res.json).toHaveBeenCalledWith({
+            success: true,
+            data: mockAnnouncements
+        });
     });
 
-    it('should return only own shop announcements for shopowner', async () => {
-        const req = { user: { id: 'owner1', role: 'shopowner' } };
-        const res = mockRes();
+    test('should return only own shop announcements for shopowner', async () => {
+        const mockShops = [
+            { _id: 'shop1' },
+            { _id: 'shop2' }
+        ];
 
-        const mockShop = { _id: 'shop1' };
-        const mockAnnouncements = [{ _id: 'ann1', title: 'My Notice', shop: 'shop1' }];
+        const mockAnnouncements = [
+            { _id: '1', title: 'Promo 1' },
+            { _id: '2', title: 'Promo 2' }
+        ];
 
-        Shop.findOne.mockResolvedValue(mockShop);
-        Announcement.find = jest.fn().mockReturnValue({
-            sort: jest.fn().mockResolvedValue(mockAnnouncements)
+        Shop.find.mockResolvedValue(mockShops);
+
+        Announcement.find.mockReturnValue({
+            populate: jest.fn().mockReturnValue({
+                sort: jest.fn().mockResolvedValue(mockAnnouncements)
+            })
         });
 
         await getAnnouncements(req, res);
 
-        expect(Shop.findOne).toHaveBeenCalledWith({ owner: 'owner1' });
-        expect(Announcement.find).toHaveBeenCalledWith({ shop: mockShop._id });
+        expect(Shop.find).toHaveBeenCalledWith({ owner: 'owner1' });
+
+        expect(Announcement.find).toHaveBeenCalledWith({
+            shop: { $in: ['shop1', 'shop2'] }
+        });
+
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ success: true, data: mockAnnouncements });
+        expect(res.json).toHaveBeenCalledWith({
+            success: true,
+            data: mockAnnouncements
+        });
     });
 
-    it('should return empty array if shopowner has no shop', async () => {
-        const req = { user: { id: 'owner_no_shop', role: 'shopowner' } };
-        const res = mockRes();
-
-        Shop.findOne.mockResolvedValue(null);
+    test('should return empty array if shopowner has no shop', async () => {
+        Shop.find.mockResolvedValue([]);
 
         await getAnnouncements(req, res);
 
+        expect(Shop.find).toHaveBeenCalledWith({ owner: 'owner1' });
+
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith({ success: true, data: [] });
+        expect(res.json).toHaveBeenCalledWith({
+            success: true,
+            data: []
+        });
     });
 
-    it('should return 500 if a database error occurs', async () => {
-        const req = { user: { id: 'admin1', role: 'admin' } };
-        const res = mockRes();
-
-        Announcement.find = jest.fn().mockReturnValue({
-            sort: jest.fn().mockRejectedValue(new Error('DB error'))
-        });
+    test('should return 500 if error occurs', async () => {
+        Shop.find.mockRejectedValue(new Error('Database Error'));
 
         await getAnnouncements(req, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+        expect(res.json).toHaveBeenCalledWith({
+            success: false,
+            message: 'Database Error'
+        });
     });
 });
