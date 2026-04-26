@@ -137,6 +137,15 @@ exports.addRating = async (req, res, next) => {
             }
         }
 
+        const score = Number(req.body.score);
+
+        if (!score || score < 1 || score > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Please select a star rating between 1 and 5"
+            });
+        }
+
         const rating = await Rating.create({
             user: req.user.id,
             shop: shopId,
@@ -189,6 +198,13 @@ exports.updateRating = async (req, res, next) => {
             { score, review },
             { new: true, runValidators: true }
         );
+
+        if (!score || score < 1 || score > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Please select a star rating between 1 and 5"
+            });
+        }
 
         // Manually trigger shop average update since findByIdAndUpdate won't fire post('save')
         await updateShopRating(rating.shop);
