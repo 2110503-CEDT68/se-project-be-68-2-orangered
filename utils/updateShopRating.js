@@ -1,3 +1,6 @@
+const Rating = require('../models/Rating');
+const Shop = require('../models/Shop');
+
 // Helper: recalculate and update shop's averageRating and ratingCount
 exports.updateShopRating = async (shopId) => {
     const result = await Rating.aggregate([
