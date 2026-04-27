@@ -47,7 +47,7 @@ exports.getAnnouncements = async (req, res) => {
 // @route   POST /api/v1/announcements
 exports.createAnnouncement = async (req, res) => {
     try {
-        const { title, content, imageUrl } = req.body;
+        const { title, content, imageUrl, imagePosition } = req.body; 
         const requestedShopId = req.body.shop;
 
         let resolvedShopId;
@@ -60,7 +60,11 @@ exports.createAnnouncement = async (req, res) => {
                     return res.status(403).json({ success: false, message: 'You are not the owner of this shop' });
                 }
                 resolvedShopId = shop._id;
-            } else {
+            } 
+            
+            
+
+            else {
                 // fallback: ใช้ร้านแรกที่เจอ
                 const shop = await Shop.findOne({ owner: req.user.id });
                 if (!shop) {
@@ -77,6 +81,7 @@ exports.createAnnouncement = async (req, res) => {
             title,
             content,
             imageUrl,
+            imagePosition,
             shop: resolvedShopId
         });
         res.status(201).json({ success: true, data: newAnnouncement });

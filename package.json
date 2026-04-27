@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@exortek/express-mongo-sanitize": "^1.1.1",
+    "animejs": "^4.3.6",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
