@@ -97,7 +97,7 @@ exports.updateAnnouncement = async (req, res) => {
         const updatedAnnouncement = await Announcement.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { returnDocument: 'after' }
+            { new: true }
         );
         if (!updatedAnnouncement) {
             return res.status(404).json({ success: false, message: 'Announcement not found' });
