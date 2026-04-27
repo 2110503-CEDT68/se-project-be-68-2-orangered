@@ -8,7 +8,11 @@ const AnnouncementSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: 'Shop',
         required: true
+    },
+    imagePosition: { 
+        type: String, 
+        default: 'center' 
     }
-}, { timestamps: true }); // timestamps จะสร้าง createdAt และ updatedAt ให้อัตโนมัติ
+}, { timestamps: true }); 
 
 module.exports = mongoose.model('Announcement', AnnouncementSchema);
