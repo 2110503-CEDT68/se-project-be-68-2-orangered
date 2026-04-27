@@ -91,6 +91,39 @@ const ShopSchema = new mongoose.Schema(
         picture: {
           type: String,
         },
+        isPackage: {
+          type: Boolean,
+          default: false 
+        },
+        isActive: {
+          type: Boolean,
+          default: true 
+        },
+        promotions: [
+          {
+            title: String,
+            description: String,
+            discountPrice: {
+              type: Number,
+              required: [true, "Please add a discounted price"],
+            },
+            startDate: {
+              type: Date,
+              required: [true, "Please add a start date"],
+            },
+            endDate: {
+              type: Date,
+              required: [true, "Please add an end date"],
+            },
+            // Optional:
+            startTime: String, // ex 09:00"
+            endTime: String,   // ex "12:00"
+            isActive: {
+              type: Boolean,
+              default: true
+            }
+          }
+        ]
       },
     ],
   },

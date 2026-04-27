@@ -21,6 +21,10 @@ const ReservationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  promotion: {
+  title: String,
+  discountPrice: Number
+}
 });
 
 module.exports = mongoose.model("Reservation", ReservationSchema);
