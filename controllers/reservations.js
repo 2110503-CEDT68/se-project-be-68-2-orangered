@@ -25,11 +25,10 @@ exports.getReservations = async (req, res, next) => {
 
     // Shopowner can see reservations for their shops
     if(req.user.role === 'shopowner'){
-        // Find all shops owned by this shopowner
-        const shopIds = await Shop.find({ owner: req.user.id }).select('_id');
-        const shopIdArray = shopIds.map(s => s._id);
+    const shopIds = await Shop.find({ owner: req.user.id }).select('_id');
+    const shopIdArray = shopIds.map(s => s._id);
+    filters.shop = { $in: shopIdArray };
         
-        filters = { shop: { $in: shopIdArray } };
         query = Reservation.find(filters).populate({
             path: 'shop',
             select: 'name province tel owner'
@@ -143,26 +142,31 @@ exports.getReservation = async (req, res, next) => {
 };
 
 exports.addReservation = async (req, res, next) => {
-    try{
-        if (req.user.role === 'shopowner') {
-            return res.status(403).json({
-                success: false,
-                message: 'Shop owners are not allowed to create reservations'
-            });
-        }
-
+    try {
         req.body.shop = req.params.shopId;
+        const shop = await Shop.findById(req.params.shopId);
 
-        const shop = await Shop.findById(req.params.shopId)
-
-        if(!shop){
-            return res.status(400).json({
-                success: false,
-                message: `No shop with the id of ${req.params.shopId}`
-            });
+        if (!shop) {
+            return res.status(400).json({ success: false, message: `No shop with id ${req.params.shopId}` });
         }
 
-        // add user Id to req.body
+        const selectedMassage = shop.massageType.find(m => m.name === req.body.massageType);
+        if (!selectedMassage) {
+            return res.status(400).json({ success: false, message: "Invalid massage type" });
+        }
+
+        const activePromo = selectedMassage.promotions?.find(p => p.isActive === true);
+        
+        let finalPrice = selectedMassage.price;
+        if (activePromo) {
+            finalPrice = selectedMassage.price - activePromo.discountPrice;
+            req.body.promotion = {
+                title: activePromo.title,
+                discountPrice: activePromo.discountPrice
+            };
+        }
+
+        req.body.massagePrice = finalPrice;
         req.body.user = req.user.id;
 
         // Only active reservations count toward the user quota
@@ -179,22 +183,20 @@ exports.addReservation = async (req, res, next) => {
             });
         }
 
-
         const reservation = await Reservation.create(req.body);
 
         res.status(201).json({
             success: true,
             data: reservation
         });
-    }catch(err){
+    } catch(err) {
         console.log(err);
-        
         return res.status(500).json({
             success: false,
             message: "Cannot create Reservation"
         });
     }
-}
+};
 
 exports.updateReservation = async (req, res, next) => {
     try{
