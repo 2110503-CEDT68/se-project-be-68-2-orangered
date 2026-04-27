@@ -34,7 +34,7 @@ connectDB();
 const app = express();
 const allowedOrigins = (
     process.env.CORS_ORIGIN ||
-    'http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000,https://orange-red-phi.vercel.app'
+    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5000,http://frontend:3000,https://orange-red-phi.vercel.app'
 )
     .split(',')
     .map((origin) => origin.trim())
@@ -109,9 +109,9 @@ app.set('query parser', 'extended');
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, 
-    console.log('Server running in ', 
-        process.env.NODE_ENV, 
+const server = app.listen(PORT,
+    console.log('Server running in ',
+        process.env.NODE_ENV,
         ' mode on port ', PORT)
 );
 
