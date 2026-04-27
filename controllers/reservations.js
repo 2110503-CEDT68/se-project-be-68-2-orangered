@@ -25,11 +25,10 @@ exports.getReservations = async (req, res, next) => {
 
     // Shopowner can see reservations for their shops
     if(req.user.role === 'shopowner'){
-        // Find all shops owned by this shopowner
-        const shopIds = await Shop.find({ owner: req.user.id }).select('_id');
-        const shopIdArray = shopIds.map(s => s._id);
+    const shopIds = await Shop.find({ owner: req.user.id }).select('_id');
+    const shopIdArray = shopIds.map(s => s._id);
+    filters.shop = { $in: shopIdArray };
         
-        filters = { shop: { $in: shopIdArray } };
         query = Reservation.find(filters).populate({
             path: 'shop',
             select: 'name province tel owner'
