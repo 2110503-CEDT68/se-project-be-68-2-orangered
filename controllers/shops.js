@@ -4,7 +4,6 @@ const Reservation = require("../models/Reservation");
 exports.getShops = async (req, res, next) => {
   let query;
 
-  // 1. Copy req.query และกำจัด Field ที่ไม่เกี่ยวข้อง (Logic เดิมของคุณ)
   const reqQuery = { ...req.query };
   const removeFields = ["select", "sort", "page", "limit"];
   removeFields.forEach((param) => delete reqQuery[param]);
@@ -16,54 +15,62 @@ exports.getShops = async (req, res, next) => {
   );
   const filters = JSON.parse(queryStr);
 
-  // Pagination Setup (Logic เดิมของคุณ)
   const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
   const limit = Math.max(parseInt(req.query.limit, 10) || 6, 1);
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
+const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   try {
-    let shops;
-    let total;
-
     if (req.query.sort === "promo") {
-  const pipeline = [
-    { $match: filters },
-
-    {
-      $facet: {
-        promo: [
-          {
-            $match: {
-              massageType: {
-                $elemMatch: {
-                  promotions: { $exists: true, $ne: [] },
-                },
+      const pipeline = [
+        { $match: filters },
+        {
+          $facet: {
+            promo: [
+              {
+                $match: {
+                  massageType: {
+                    $elemMatch: {
+                      promotions: {
+                        $elemMatch: {
+                          isActive: true, 
+                          endDate: { $gte: today } 
+                        }
+                      }
+                    }
+                  }
+                }
               },
-            },
-          },
-          {
-            $addFields: { hasPromo: 1 } // 🔥 ใส่ flag
-          }
-        ],
-        nonPromo: [
-          {
-            $match: {
-              massageType: {
-                $not: {
-                  $elemMatch: {
-                    promotions: { $exists: true, $ne: [] },
-                  },
-                },
+              { $addFields: { hasPromo: 1 } }
+            ],
+            nonPromo: [
+              {
+                $match: {
+                  $or: [
+                    { "massageType.promotions": { $size: 0 } }, 
+                    {
+                      massageType: {
+                        $not: {
+                          $elemMatch: {
+                            promotions: {
+                              $elemMatch: {
+                                isActive: true,
+                                endDate: { $gte: today }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
               },
-            },
+              { $addFields: { hasPromo: 0 } }
+            ],
           },
-          {
-            $addFields: { hasPromo: 0 } 
-          }
-        ],
-      },
-    },
+        },
 
     {
       $project: {
@@ -99,7 +106,6 @@ exports.getShops = async (req, res, next) => {
   total = result[0].metadata[0]?.total || 0;
   shops = result[0].data;
 } else {
-      // --- LOGIC เดิมของคุณ (Normal Query) ---
       total = await Shop.countDocuments(filters);
       query = Shop.find(filters).populate("reservations");
 
