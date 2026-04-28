@@ -82,14 +82,15 @@ exports.addRating = async (req, res, next) => {
     try {
         let reservation = null;
         let shopId = req.params.shopId || req.body.shop;
+        const reservationId = req.params.reservationId || req.body.reservation;
 
-        if (req.params.reservationId) {
-            reservation = await Reservation.findById(req.params.reservationId);
+        if (reservationId) {
+            reservation = await Reservation.findById(reservationId);
 
             if (!reservation) {
                 return res.status(404).json({
                     success: false,
-                    message: `No reservation with the id of ${req.params.reservationId}`
+                    message: `No reservation with the id of ${reservationId}`
                 });
             }
 
@@ -151,7 +152,7 @@ exports.addRating = async (req, res, next) => {
             shop: shopId,
             reservation: reservation?._id || null,
             score: req.body.score,
-            review: req.body.review
+            review: req.body.review || req.body.comment
         });
 
         await updateShopRating(shopId);
@@ -191,20 +192,27 @@ exports.updateRating = async (req, res, next) => {
         }
 
         // Only allow score and review to be updated
-        const { score, review } = req.body;
+        const updateData = {};
+        if (req.body.score !== undefined) {
+            const score = Number(req.body.score);
+            if (isNaN(score) || score < 1 || score > 5) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please select a star rating between 1 and 5"
+                });
+            }
+            updateData.score = score;
+        }
+
+        if (req.body.review !== undefined || req.body.comment !== undefined) {
+            updateData.review = req.body.review || req.body.comment;
+        }
 
         rating = await Rating.findByIdAndUpdate(
             req.params.id,
-            { score, review },
+            updateData,
             { new: true, runValidators: true }
         );
-
-        if (!score || score < 1 || score > 5) {
-            return res.status(400).json({
-                success: false,
-                message: "Please select a star rating between 1 and 5"
-            });
-        }
 
         // Manually trigger shop average update since findByIdAndUpdate won't fire post('save')
         await updateShopRating(rating.shop);
