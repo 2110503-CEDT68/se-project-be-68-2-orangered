@@ -110,10 +110,10 @@ exports.addRating = async (req, res, next) => {
                     message: "Cannot rate a reservation that hasn't occurred yet"
                 });
             }
-        } else if (req.user.role !== 'admin') {
+        } else if (req.user.role !== 'admin' && !req.params.shopId && !req.body.shop) {
             return res.status(400).json({
                 success: false,
-                message: "Reservation is required to create a rating"
+                message: "Shop is required to create a rating"
             });
         }
 

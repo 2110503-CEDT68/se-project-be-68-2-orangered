@@ -68,7 +68,13 @@ app.use(helmet());
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 10*60*1000, // 10 min
-    max: 1000
+    max: process.env.NODE_ENV === 'production' ? 1000 : 100000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        success: false,
+        msg: 'Too many requests, please try again later.'
+    }
 });
 
 app.use(limiter);
