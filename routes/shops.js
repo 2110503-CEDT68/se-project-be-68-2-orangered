@@ -20,6 +20,85 @@ router.use('/:shopId/rating', ratingRouter);
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     Promotion:
+ *       type: object
+ *       required:
+ *         - discountPrice
+ *         - startDate
+ *         - endDate
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: MongoDB ObjectId (auto-generated)
+ *         title:
+ *           type: string
+ *           example: Flash Sale
+ *         description:
+ *           type: string
+ *           example: Limited-time weekend discount
+ *         discountPrice:
+ *           type: number
+ *           minimum: 0
+ *           example: 100
+ *           description: Fixed discount amount in THB (not a percentage)
+ *         startDate:
+ *           type: string
+ *           format: date
+ *           example: "2025-01-01"
+ *         endDate:
+ *           type: string
+ *           format: date
+ *           example: "2025-01-31"
+ *         startTime:
+ *           type: string
+ *           description: Optional daily start time (HH:MM)
+ *           example: "09:00"
+ *         endTime:
+ *           type: string
+ *           description: Optional daily end time (HH:MM)
+ *           example: "21:00"
+ *         isActive:
+ *           type: boolean
+ *           default: true
+ *           example: true
+ *     MassageType:
+ *       type: object
+ *       required:
+ *         - name
+ *         - price
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *           example: Thai Massage
+ *         description:
+ *           type: string
+ *           example: Traditional Thai full-body massage
+ *         price:
+ *           type: number
+ *           minimum: 0
+ *           example: 500
+ *           description: Full original price in THB before any discount
+ *         picture:
+ *           type: string
+ *         isPackage:
+ *           type: boolean
+ *           default: false
+ *         isActive:
+ *           type: boolean
+ *           default: true
+ *         promotions:
+ *           type: array
+ *           description: "Only one promotion should have isActive: true at a time. finalPrice = price - activePromotion.discountPrice"
+ *           items:
+ *             $ref: '#/components/schemas/Promotion'
+ */
+
+/**
+ * @swagger
  * /api/v1/shops:
  *   get:
  *     summary: Get all shops
@@ -164,6 +243,35 @@ router.route('/').get(getShops).post(protect, authorize('shopowner', 'admin'), c
  *             schema: { $ref: '#/components/schemas/Error' }
  *       404:
  *         description: Shop not found
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ */
+/**
+ * @swagger
+ * /api/v1/shops/mine:
+ *   get:
+ *     summary: Get shops owned by the current user (shopowner or admin only)
+ *     tags: [Shops]
+ *     responses:
+ *       200:
+ *         description: List of shops owned by the authenticated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: array
+ *                   items: { $ref: '#/components/schemas/Shop' }
+ *       401:
+ *         description: Not authenticated
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/Error' }
+ *       403:
+ *         description: Not authorized
  *         content:
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Error' }

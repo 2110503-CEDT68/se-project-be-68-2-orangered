@@ -63,15 +63,7 @@ const options = {
                         ratingCount: { type: 'number' },
                         massageType: {
                             type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    name: { type: 'string' },
-                                    description: { type: 'string' },
-                                    price: { type: 'number' },
-                                    picture: { type: 'string' },
-                                },
-                            },
+                            items: { $ref: '#/components/schemas/MassageType' },
                         },
                     },
                 },
@@ -79,10 +71,13 @@ const options = {
                     type: 'object',
                     properties: {
                         _id: { type: 'string' },
-                        user: { type: 'string' },
-                        Shop: { type: 'string' },
-                        reservationDate: { type: 'string', format: 'date-time' },
-                        status: { type: 'string', enum: ['active', 'past', 'cancelled'] },
+                        user: { type: 'string', description: 'User ObjectId' },
+                        shop: { type: 'string', description: 'Shop ObjectId' },
+                        appDate: { type: 'string', format: 'date-time', description: 'Appointment date and time' },
+                        massageType: { type: 'string', example: 'Thai Massage' },
+                        massagePrice: { type: 'number', example: 400, description: 'Final price paid after discount (THB)' },
+                        promotion: { $ref: '#/components/schemas/PromotionSnapshot' },
+                        createdAt: { type: 'string', format: 'date-time' },
                     },
                 },
                 Message: {
