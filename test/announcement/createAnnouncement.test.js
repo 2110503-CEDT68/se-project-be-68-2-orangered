@@ -52,13 +52,37 @@ describe('createAnnouncement', () => {
 
         const mockAnnouncement = { _id: 'ann2', title: 'System Notice', shop: 'shop99' };
 
+        Shop.findById.mockResolvedValue({ _id: 'shop99' });
         Announcement.create.mockResolvedValue(mockAnnouncement);
 
         await createAnnouncement(req, res);
 
-        expect(Shop.findOne).not.toHaveBeenCalled();
+        expect(Shop.findById).toHaveBeenCalledWith('shop99');
         expect(Announcement.create).toHaveBeenCalledWith(expect.objectContaining({ shop: 'shop99' }));
         expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('should create announcement successfully as admin without shop for global announcement', async () => {
+        const req = {
+            body: { title: 'Global Notice', content: 'Applies to everyone' },
+            user: { id: 'admin1', role: 'admin' }
+        };
+        const res = mockRes();
+
+        const mockAnnouncement = { _id: 'ann-global', title: 'Global Notice', shop: null };
+
+        Announcement.create.mockResolvedValue(mockAnnouncement);
+
+        await createAnnouncement(req, res);
+
+        expect(Shop.findById).not.toHaveBeenCalled();
+        expect(Announcement.create).toHaveBeenCalledWith(expect.objectContaining({
+            title: 'Global Notice',
+            content: 'Applies to everyone',
+            shop: null
+        }));
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith({ success: true, data: mockAnnouncement });
     });
 
     it('should return 404 if shopowner has no shop', async () => {

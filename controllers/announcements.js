@@ -50,7 +50,7 @@ exports.createAnnouncement = async (req, res) => {
         const { title, content, imageUrl, imagePosition } = req.body; 
         const requestedShopId = req.body.shop;
 
-        let resolvedShopId;
+        let resolvedShopId = null;
 
         if (req.user.role === 'shopowner') {
             if (requestedShopId) {
@@ -72,9 +72,12 @@ exports.createAnnouncement = async (req, res) => {
                 }
                 resolvedShopId = shop._id;
             }
-        } else {
-            // admin ส่ง shopId มาตรงๆ
-            resolvedShopId = requestedShopId;
+        } else if (requestedShopId) {
+            const shop = await Shop.findById(requestedShopId);
+            if (!shop) {
+                return res.status(404).json({ success: false, message: 'Shop not found' });
+            }
+            resolvedShopId = shop._id;
         }
 
         const newAnnouncement = await Announcement.create({

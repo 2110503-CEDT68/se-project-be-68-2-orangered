@@ -125,7 +125,7 @@ router.get('/', protect, authorize('admin', 'shopowner'), getAnnouncements);
  *               title: { type: string }
  *               content: { type: string }
  *               imageUrl: { type: string }
- *               shop: { type: string, description: 'Required if admin' }
+ *               shop: { type: string, description: 'Optional. Omit for a global admin announcement.' }
  *     responses:
  *       201:
  *         description: Announcement created
