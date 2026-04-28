@@ -159,10 +159,11 @@ exports.addReservation = async (req, res, next) => {
         
         let finalPrice = selectedMassage.price;
         if (activePromo) {
-            finalPrice = selectedMassage.price - activePromo.discountPrice;
+            finalPrice = activePromo.discountPrice;
             req.body.promotion = {
                 title: activePromo.title,
-                discountPrice: activePromo.discountPrice
+                discountPrice: activePromo.discountPrice,
+                originalPrice: selectedMassage.price 
             };
         }
 

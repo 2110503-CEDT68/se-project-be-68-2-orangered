@@ -16,15 +16,17 @@ const ReservationSchema = new mongoose.Schema({
     required: true,
   },
   massageType: { type: String, required: true },
-  massagePrice: { type: Number, required: true },
+  
+  massagePrice: { type: Number, required: true }, 
+  promotion: {
+    title: String,
+    discountPrice: Number, 
+    originalPrice: Number  
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
-  promotion: {
-  title: String,
-  discountPrice: Number
-}
 });
 
 module.exports = mongoose.model("Reservation", ReservationSchema);
