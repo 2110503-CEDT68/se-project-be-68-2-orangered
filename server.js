@@ -34,7 +34,7 @@ connectDB();
 const app = express();
 const allowedOrigins = (
     process.env.CORS_ORIGIN ||
-    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5000,http://frontend:3000,https://orange-red-phi.vercel.app'
+    'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5000,http://frontend:3000,https://orange-red-fe-4ky1.vercel.app'
 )
     .split(',')
     .map((origin) => origin.trim())
